@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web - Character Library</title>
+    <title>TweenCraft Web - Movie Maker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a2e; color: white; margin: 0; padding: 20px; }
@@ -17,38 +17,32 @@
         button { padding: 10px 15px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
         .btn-rec { background: #ff4757; color: white; }
         .btn-play { background: #2ed573; color: white; }
-        .btn-main { background: #f9d423; color: black; }
+        .btn-vid { background: #9b59b6; color: white; }
         .btn-tool { background: #00d2ff; color: white; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #555; display: inline-block; }
-        .recording .status-dot { background: #ff4757; box-shadow: 0 0 8px #ff4757; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Web Animator</h1>
+    <h1>TweenCraft Web Movie Maker</h1>
     
     <div class="toolbar">
         <div class="library">
-            <strong>Pick a Character:</strong>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png" title="Boy"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1998/1998592.png')"><img src="https://cdn-icons-png.flaticon.com/512/1998/1998592.png" title="Panda"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" title="Robot"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1083/1083545.png')"><img src="https://cdn-icons-png.flaticon.com/512/1083/1083545.png" title="Monster"></div>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"></div>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1998/1998592.png')"><img src="https://cdn-icons-png.flaticon.com/512/1998/1998592.png"></div>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png"></div>
         </div>
 
-        <button class="btn-main" onclick="addSpeechBubble()">💬 Add Speech</button>
+        <button class="btn-tool" onclick="addSpeechBubble()">💬 Add Speech</button>
         <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
         <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-        <button class="btn-tool" style="background:#95a5a6" onclick="downloadImage()">📸 Save Photo</button>
+        <button class="btn-vid" onclick="downloadVideo()">🎥 Download Video</button>
     </div>
 
     <div id="canvas-container">
         <canvas id="stage" width="800" height="500"></canvas>
     </div>
 
-    <div class="recording-bar" id="recBar">
-        <div class="status-dot"></div>
+    <div class="recording-bar">
         <button class="btn-rec" id="recBtn" onclick="toggleRecording()">● Start Recording</button>
         <button class="btn-play" onclick="playRecording()">▶ Play Animation</button>
     </div>
@@ -59,17 +53,10 @@
         let frames = [];
         let recInterval;
 
-        // Enhanced Add Character to accept a URL
         function addCharacter(url) {
             fabric.Image.fromURL(url, function(img) {
-                img.set({ 
-                    left: 100 + (Math.random() * 100), 
-                    top: 200, 
-                    scaleX: 0.25, 
-                    scaleY: 0.25 
-                });
+                img.set({ left: 100, top: 200, scaleX: 0.25, scaleY: 0.25 });
                 canvas.add(img);
-                canvas.setActiveObject(img);
             }, { crossOrigin: 'anonymous' });
         }
 
@@ -82,72 +69,67 @@
         }
 
         function addSpeechBubble() {
-            const text = new fabric.IText('Hello!', { 
-                fontSize: 22, left: 300, top: 100, 
-                backgroundColor: 'white', padding: 10,
-                fontFamily: 'Arial'
-            });
+            const text = new fabric.IText('Hello!', { fontSize: 25, left: 300, top: 100, backgroundColor: 'white' });
             canvas.add(text);
-            canvas.setActiveObject(text);
         }
 
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
-            const bar = document.getElementById('recBar');
             if (recording) {
                 frames = [];
                 btn.innerText = "■ Stop Recording";
-                bar.classList.add('recording');
-                recInterval = setInterval(() => {
-                    frames.push(JSON.stringify(canvas));
-                }, 50);
+                recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50);
             } else {
                 btn.innerText = "● Start Recording";
-                bar.classList.remove('recording');
                 clearInterval(recInterval);
             }
         }
 
         function playRecording() {
             if (frames.length === 0) return alert("Record something first!");
-            let currentFrame = 0;
-            const playInterval = setInterval(() => {
-                if (currentFrame >= frames.length) {
-                    clearInterval(playInterval);
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i >= frames.length) return clearInterval(interval);
+                canvas.loadFromJSON(frames[i], canvas.renderAll.bind(canvas));
+                i++;
+            }, 50);
+        }
+
+        // --- THE VIDEO EXPORT ENGINE ---
+        async function downloadVideo() {
+            if (frames.length === 0) return alert("Record an animation first!");
+            
+            const stream = document.querySelector('canvas').captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const chunks = [];
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my-cartoon.webm';
+                a.click();
+            };
+
+            recorder.start();
+            
+            // Replay frames to "film" them
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i >= frames.length) {
+                    clearInterval(interval);
+                    recorder.stop();
                     return;
                 }
-                canvas.loadFromJSON(frames[currentFrame], canvas.renderAll.bind(canvas));
-                currentFrame++;
+                canvas.loadFromJSON(frames[i], canvas.renderAll.bind(canvas));
+                i++;
             }, 50);
         }
 
-        function downloadImage() {
-            const dataURL = canvas.toDataURL({format: 'png'});
-            const link = document.createElement('a');
-            link.download = 'scene.png';
-            link.href = dataURL;
-            link.click();
-        }
-
-        // Add a default boy to start
         addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png');
-    </script>
-</body>
-</html>
-                currentFrame++;
-            }, 50);
-        }
-
-        function downloadImage() {
-            const dataURL = canvas.toDataURL({format: 'png'});
-            const link = document.createElement('a');
-            link.download = 'scene.png';
-            link.href = dataURL;
-            link.click();
-        }
-
-        addCharacter();
     </script>
 </body>
 </html>
