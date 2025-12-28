@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Ultra - Lip Sync Edition</title>
+    <title>TweenCraft Ultra - Save & Export</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -14,28 +14,31 @@
         button { padding: 8px; cursor: pointer; font-weight: bold; border-radius: 6px; border: none; transition: 0.2s; background: #3498db; color: white; font-size: 13px; }
         button:hover { filter: brightness(1.2); transform: scale(1.05); }
         .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .char-card { background: #16213e; padding: 5px; border-radius: 8px; text-align: center; cursor: pointer; }
-        .char-card img { width: 50px; height: 50px; display: block; margin: 0 auto; }
+        .char-card { background: #16213e; padding: 5px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 11px; }
+        .char-card img { width: 45px; height: 45px; display: block; margin: 0 auto; }
         .label-group { font-size: 0.7rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #16213e; padding-bottom: 3px; }
         .btn-rec { background: #e94560; }
-        .btn-talk { background: #f39c12; animation: glow 2s infinite; }
-        @keyframes glow { 50% { box-shadow: 0 0 15px #f39c12; } }
+        .btn-save { background: #2ecc71; color: white; }
+        .btn-export { background: #9b59b6; color: white; }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Lip-Sync Studio</h1>
+    <h1>TweenCraft Pro Studio</h1>
     
     <div class="toolbar">
+        <button class="btn-save" onclick="saveProject()">💾 Save Project</button>
+        <button style="background: #34495e" onclick="loadProject()">📂 Load Last Save</button>
+        <button class="btn-export" onclick="downloadVideo()">📤 Export Video to Device</button>
+        |
         <button style="background:#f1c40f; color:#2c3e50" onclick="undo()">↩️ Undo</button>
-        <button onclick="zoomIn()">🔍 Zoom In</button>
-        <button onclick="zoomOut()">🔍 Zoom Out</button>
-        <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Download Movie</button>
+        <button onclick="zoomIn()">🔍 Zoom +</button>
+        <button onclick="zoomOut()">🔍 Zoom -</button>
     </div>
 
     <div class="main-layout">
         <div class="sidebar">
-            <div class="label-group">Cast</div>
+            <div class="label-group">Select Cast</div>
             <div class="char-grid">
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png">Boy</div>
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')"><img src="https://cdn-icons-png.flaticon.com/512/4140/4140047.png">Girl</div>
@@ -43,13 +46,13 @@
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1083/1083545.png')"><img src="https://cdn-icons-png.flaticon.com/512/1083/1083545.png">Monster</div>
             </div>
 
-            <div class="label-group">Lip Sync & Voice</div>
-            <select id="langSelect" style="width:100%; margin-bottom:5px;">
+            <div class="label-group">Lip Sync Voice</div>
+            <select id="langSelect" style="width:100%; margin-bottom:5px; background: #16213e; color: white; border: 1px solid #3498db; padding: 5px;">
                 <option value="en-US">English</option>
                 <option value="es-ES">Spanish</option>
-                <option value="fr-FR">French</option>
+                <option value="hi-IN">Hindi</option>
             </select>
-            <button class="btn-talk" style="width:100%" onclick="speakWithLipSync()">🗣️ Talk & Move</button>
+            <button style="background:#f39c12; width:100%" onclick="speakWithLipSync()">🗣️ Talk & Move</button>
 
             <div class="label-group">Actions</div>
             <button onclick="addSpeechBubble()" style="width:100%">💬 Add Bubble</button>
@@ -68,7 +71,7 @@
     </div>
 
     <div class="toolbar" style="margin-top:20px;">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 40px; font-size: 1.2em;">● Record Scene</button>
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 40px; font-size: 1.2em;">● Start Recording</button>
         <button style="background:#2ed573; padding: 15px 40px; font-size: 1.2em;" onclick="playRecording()">▶ Playback</button>
     </div>
 
@@ -79,47 +82,55 @@
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         canvas.on('object:modified', saveHistory);
 
-        // --- NEW LIP SYNC LOGIC ---
+        // --- SAVE & LOAD PROJECT LOGIC ---
+        function saveProject() {
+            const projectData = JSON.stringify(canvas);
+            localStorage.setItem('tweencraft_project', projectData);
+            alert("Project saved to browser memory! 💾");
+        }
+
+        function loadProject() {
+            const data = localStorage.getItem('tweencraft_project');
+            if (data) {
+                canvas.loadFromJSON(data, () => {
+                    canvas.renderAll();
+                    alert("Project loaded! 📂");
+                });
+            } else {
+                alert("No saved project found.");
+            }
+        }
+
+        // --- LIP SYNC ---
         function speakWithLipSync() {
             const active = canvas.getActiveObject();
             const speechBubble = canvas.getObjects().find(obj => obj.type === 'i-text');
-            
             if (!active || active.type !== 'image') return alert("Select a character first!");
-            if (!speechBubble) return alert("Add a speech bubble for the character to say!");
+            if (!speechBubble) return alert("Add a speech bubble!");
 
             const msg = new SpeechSynthesisUtterance(speechBubble.text);
             msg.lang = document.getElementById('langSelect').value;
-
-            // Start the "talking" bounce animation
             let isTalking = true;
+
             function bounce() {
                 if (!isTalking) return;
                 active.animate('scaleY', 0.28, {
-                    duration: 150,
-                    onChange: canvas.renderAll.bind(canvas),
-                    onComplete: () => {
-                        active.animate('scaleY', 0.25, {
-                            duration: 150,
-                            onChange: canvas.renderAll.bind(canvas),
-                            onComplete: bounce
-                        });
-                    }
+                    duration: 150, onChange: canvas.renderAll.bind(canvas),
+                    onComplete: () => active.animate('scaleY', 0.25, { duration: 150, onChange: canvas.renderAll.bind(canvas), onComplete: bounce })
                 });
             }
-            
             msg.onstart = () => bounce();
             msg.onend = () => { isTalking = false; active.set('scaleY', 0.25); canvas.renderAll(); };
-            
             window.speechSynthesis.speak(msg);
         }
 
-        // --- CORE STUDIO TOOLS ---
+        // --- STUDIO TOOLS ---
         function zoomIn() { canvas.setZoom(canvas.getZoom() * 1.1); }
         function zoomOut() { canvas.setZoom(canvas.getZoom() / 1.1); }
 
         function addCharacter(url) {
             fabric.Image.fromURL(url, img => {
-                img.set({ left: 100, top: 250, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
+                img.set({ left: 100, top: 400, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
                 canvas.add(img); canvas.setActiveObject(img); saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
@@ -131,14 +142,12 @@
 
         function autoAnimateWalk() {
             const active = canvas.getActiveObject();
-            if (active) active.animate('left', 600, { duration: 2000, onChange: canvas.renderAll.bind(canvas) });
+            if (active) active.animate('left', 600, { duration: 2000, onChange: canvas.renderAll.bind(canvas), onComplete: saveHistory });
         }
 
         function changeBG(url) {
             fabric.Image.fromURL(url, img => {
-                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                    scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
-                });
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), { scaleX: canvas.width / img.width, scaleY: canvas.height / img.height });
                 saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
@@ -146,7 +155,7 @@
         function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
         function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
 
-        // --- VIDEO ENGINE ---
+        // --- EXPORT LOGIC ---
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
@@ -166,6 +175,7 @@
         }
 
         async function downloadVideo() {
+            if (frames.length === 0) return alert("Please record a scene first!");
             const stream = document.querySelector('canvas').captureStream(30);
             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
             const chunks = [];
@@ -173,7 +183,7 @@
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob); a.download = 'movie.webm'; a.click();
+                a.href = URL.createObjectURL(blob); a.download = 'tweencraft-movie.webm'; a.click();
             };
             recorder.start();
             let i = 0;
@@ -183,8 +193,6 @@
                 i++;
             }, 50);
         }
-
-        addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png');
     </script>
 </body>
 </html>
