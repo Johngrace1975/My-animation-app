@@ -3,67 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Ultra - Auto-Animate</title>
+    <title>TweenCraft Ultra - Pro Studio</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .main-layout { display: flex; gap: 20px; }
-        #canvas-container { border: 4px solid #16213e; background: white; border-radius: 10px; overflow: hidden; }
-        .sidebar { width: 260px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        button, select { padding: 10px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; background: #3498db; color: white; }
-        select { background: #16213e; color: white; border: 1px solid #3498db; }
-        button:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        .main-layout { display: flex; gap: 15px; max-width: 1200px; }
+        #canvas-container { border: 4px solid #16213e; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .sidebar { width: 220px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; height: 600px; overflow-y: auto; }
+        .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        button { padding: 8px; cursor: pointer; font-weight: bold; border-radius: 6px; border: none; transition: 0.2s; background: #3498db; color: white; font-size: 13px; }
+        button:hover { filter: brightness(1.2); transform: scale(1.05); }
+        .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .char-card { background: #16213e; padding: 5px; border-radius: 8px; text-align: center; cursor: pointer; }
+        .char-card img { width: 50px; height: 50px; display: block; margin: 0 auto; }
+        .label-group { font-size: 0.7rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #16213e; padding-bottom: 3px; }
         .btn-rec { background: #e94560; }
-        .btn-auto { background: #00d2ff; color: #1a1a2e; }
-        .label-group { font-size: 0.75rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #16213e; }
-        input[type="file"] { display: none; }
+        .btn-zoom { background: #6a0572; }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Multi-Language Studio</h1>
+    <h1>TweenCraft Movie Studio</h1>
     
     <div class="toolbar">
         <button style="background:#f1c40f; color:#2c3e50" onclick="undo()">↩️ Undo</button>
-        <button style="background:#2ecc71" onclick="document.getElementById('fileInput').click()">📁 Import Stickman</button>
-        <button style="background:#9b59b6" onclick="document.getElementById('audioInput').click()">🎵 Upload MP3</button>
-        <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Export Movie</button>
-        <input type="file" id="fileInput" accept="image/*">
-        <input type="file" id="audioInput" accept="audio/*">
+        <button class="btn-zoom" onclick="zoomIn()">🔍 Zoom In</button>
+        <button class="btn-zoom" onclick="zoomOut()">🔍 Zoom Out</button>
+        <button class="btn-zoom" onclick="resetZoom()">🏠 Reset Camera</button>
+        <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Save Movie (WEBM)</button>
     </div>
 
     <div class="main-layout">
         <div class="sidebar">
-            <div class="label-group">1. Characters</div>
-            <div style="display:flex; gap:5px; justify-content: center;">
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')">🧍</button>
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">👦</button>
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')">🤖</button>
+            <div class="label-group">Select Character</div>
+            <div class="char-grid">
+                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png">Boy</div>
+                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')"><img src="https://cdn-icons-png.flaticon.com/512/4140/4140047.png">Girl</div>
+                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">Robot</div>
+                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1998/1998592.png')"><img src="https://cdn-icons-png.flaticon.com/512/1998/1998592.png">Panda</div>
+                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1083/1083545.png')"><img src="https://cdn-icons-png.flaticon.com/512/1083/1083545.png">Monster</div>
+                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')"><img src="https://cdn-icons-png.flaticon.com/512/3593/3593311.png">Stick</div>
             </div>
 
-            <div class="label-group">2. Language & Voice</div>
-            <select id="langSelect">
-                <option value="en-US">English (US)</option>
+            <div class="label-group">Voice & Language</div>
+            <select id="langSelect" style="width:100%; padding:5px; border-radius:5px;">
+                <option value="en-US">English</option>
                 <option value="es-ES">Spanish</option>
-                <option value="fr-FR">French</option>
                 <option value="hi-IN">Hindi</option>
             </select>
-            <button style="background:#e67e22" onclick="speakText()">🗣️ Speak Selected</button>
+            <button style="background:#e67e22; width:100%" onclick="speakText()">🗣️ Speak Text</button>
 
-            <div class="label-group">3. Edit & Animate</div>
-            <button class="btn-auto" onclick="autoAnimateWalk()">🚶 Auto-Walk Right</button>
-            <button onclick="addSpeechBubble()">💬 Add Speech</button>
-            <button onclick="flipObject()">↔️ Mirror Flip</button>
+            <div class="label-group">Scene & FX</div>
+            <button onclick="addSpeechBubble()" style="width:100%">💬 Add Speech</button>
+            <button onclick="autoAnimateWalk()" style="width:100%; background:#00d2ff; color:#1a1a2e">🚶 Auto-Walk</button>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')" style="width:100%">🏞️ Park</button>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')" style="width:100%">🏙️ City</button>
             
-            <div class="label-group">4. Scenes</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-                <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-                <button onclick="changeBG('https://images.unsplash.com/photo-1500624285677-83183b9995c8?w=800')">Forest</button>
-            </div>
-            
-            <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px;">🗑️ Delete Item</button>
+            <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px; width:100%">🗑️ Delete Item</button>
         </div>
 
         <div id="canvas-container">
@@ -72,8 +68,8 @@
     </div>
 
     <div class="toolbar" style="margin-top:20px;">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 30px;">● Start Recording</button>
-        <button style="background:#2ed573; padding: 15px 30px;" onclick="playRecording()">▶ Play Animation</button>
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 40px; font-size: 1.2em;">● Start Recording</button>
+        <button style="background:#2ed573; padding: 15px 40px; font-size: 1.2em;" onclick="playRecording()">▶ Playback</button>
     </div>
 
     <script>
@@ -83,18 +79,16 @@
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         canvas.on('object:modified', saveHistory);
 
-        // --- AUTO-ANIMATE LOGIC ---
-        function autoAnimateWalk() {
-            const active = canvas.getActiveObject();
-            if (!active) return alert("Select a character to make them walk!");
-            
-            // Slide to the right side of the screen
-            active.animate('left', 650, {
-                duration: 2000,
-                onChange: canvas.renderAll.bind(canvas),
-                onComplete: saveHistory,
-                easing: fabric.util.ease.easeInOutQuad
-            });
+        // --- CAMERA ZOOM LOGIC ---
+        function zoomIn() { canvas.setZoom(canvas.getZoom() * 1.1); }
+        function zoomOut() { canvas.setZoom(canvas.getZoom() / 1.1); }
+        function resetZoom() { canvas.setZoom(1); canvas.absolutePan({x:0, y:0}); }
+
+        function addCharacter(url) {
+            fabric.Image.fromURL(url, img => {
+                img.set({ left: 100, top: 250, scaleX: 0.25, scaleY: 0.25 });
+                canvas.add(img); canvas.setActiveObject(img); saveHistory();
+            }, { crossOrigin: 'anonymous' });
         }
 
         function speakText() {
@@ -106,15 +100,17 @@
             }
         }
 
-        function addCharacter(url) {
-            fabric.Image.fromURL(url, img => {
-                img.set({ left: 50, top: 250, scaleX: 0.25, scaleY: 0.25 });
-                canvas.add(img); saveHistory();
-            }, { crossOrigin: 'anonymous' });
+        function autoAnimateWalk() {
+            const active = canvas.getActiveObject();
+            if (active) {
+                active.animate('left', 600, {
+                    duration: 2000, onChange: canvas.renderAll.bind(canvas), onComplete: saveHistory
+                });
+            }
         }
 
         function addSpeechBubble() {
-            const text = new fabric.IText('Hello!', { fontSize: 24, left: 300, top: 100, backgroundColor: 'white', padding: 10 });
+            const text = new fabric.IText('Hello!', { fontSize: 24, left: 300, top: 100, backgroundColor: 'white', padding: 8 });
             canvas.add(text); saveHistory();
         }
 
@@ -129,9 +125,7 @@
 
         function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
         function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
-        function flipObject() { const obj = canvas.getActiveObject(); if(obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); } }
 
-        // --- RECORDING ENGINE ---
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
@@ -158,7 +152,7 @@
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob); a.download = 'movie.webm'; a.click();
+                a.href = URL.createObjectURL(blob); a.download = 'my-movie.webm'; a.click();
             };
             recorder.start();
             let i = 0;
@@ -169,7 +163,7 @@
             }, 50);
         }
 
-        addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png');
+        addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png');
     </script>
 </body>
 </html>
