@@ -2,198 +2,146 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Pro - Watermark Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TweenCraft Ultra - AI Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0a0a12; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .main-layout { display: flex; gap: 15px; max-width: 1300px; width: 100%; justify-content: center; }
-        #canvas-container { border: 4px solid #3498db; border-radius: 10px; overflow: hidden; background: #222; position: relative; }
-        .sidebar { width: 240px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; max-height: 85vh; overflow-y: auto; }
-        .toolbar { background: #16213e; padding: 15px; border-radius: 15px; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; border: 1px solid #3498db; }
-        button { padding: 8px; cursor: pointer; font-weight: bold; border-radius: 6px; border: none; transition: 0.2s; background: #3498db; color: white; font-size: 12px; }
-        button:hover { filter: brightness(1.2); transform: scale(1.05); }
-        .label-group { font-size: 0.7rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #34495e; padding-bottom: 3px; }
-        .btn-green { background: #2ecc71; color: #000; }
-        .btn-rec { background: #e94560; }
-        #watermark-input { padding: 5px; border-radius: 4px; border: none; font-size: 12px; width: 90%; }
-        video#bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none; }
+        :root { --primary: #ff9f43; --bg: #0a0a0a; --card: #1e1e1e; --blue: #3498db; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .active { display: flex; }
+
+        /* BG SELECTION GRID */
+        .bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; max-width: 600px; }
+        .bg-item { background: var(--card); border-radius: 15px; overflow: hidden; border: 3px solid transparent; cursor: pointer; text-align: center; transition: 0.2s; }
+        .bg-item:hover { border-color: var(--primary); transform: scale(1.05); }
+        .bg-thumb { width: 100%; height: 80px; object-fit: cover; background: #333; }
+        .bg-label { font-size: 12px; padding: 5px; color: #bbb; }
+
+        /* STUDIO UI */
+        #studio-screen { flex-direction: row; }
+        .side-toolbar { width: 70px; background: rgba(20,20,20,0.95); height: 100%; display: flex; flex-direction: column; gap: 20px; align-items: center; padding-top: 20px; border-right: 1px solid #333; }
+        .tool-btn { width: 50px; height: 50px; background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
+        .magic-ai-btn { background: linear-gradient(45deg, #9b59b6, #3498db); border: none; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        
+        #canvas-wrapper { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        canvas { box-shadow: 0 0 30px rgba(0,0,0,0.8); border: 1px solid #444; }
+
+        .bottom-bar { position: absolute; bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .rec-circle { width: 60px; height: 60px; background: #e74c3c; border: 4px solid white; border-radius: 50%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h1>🎬 TweenCraft Branding Studio</h1>
-    
-    <div class="toolbar">
-        <button class="btn-green" onclick="setGreenScreen()">🟢 Green Screen</button>
-        <button style="background:#9b59b6" onclick="document.getElementById('videoUpload').click()">📽️ BG Video</button>
-        <input type="file" id="videoUpload" accept="video/*" style="display:none" onchange="loadVideoBackground(event)">
-        |
-        <button onclick="setRatio('16:9')">📺 16:9</button>
-        <button onclick="setRatio('9:16')">📱 9:16</button>
-        <button style="background:#2ecc71" onclick="saveProject()">💾 Save</button>
-        <button style="background:#f1c40f; color:#000" onclick="undo()">↩️ Undo</button>
-    </div>
-
-    <div class="main-layout">
-        <div class="sidebar">
-            <div class="label-group">🏷️ Watermark / Branding</div>
-            <input type="text" id="watermark-input" placeholder="Enter your name/logo..." oninput="updateWatermark()">
-            
-            <div class="label-group">🎭 Characters</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">Boy</button>
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')">Girl</button>
+    <div id="bg-screen" class="screen active">
+        <h2 style="margin-bottom: 5px;">Choose a scene</h2>
+        <button class="magic-ai-btn" onclick="aiAutoGenerate()">✨ AI Video Creator (Auto-Setup)</button>
+        
+        <div class="bg-grid">
+            <div class="bg-item" onclick="startWithBG('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400')">
+                <img class="bg-thumb" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200">
+                <div class="bg-label">Beach</div>
             </div>
-
-            <div class="label-group">🎬 Animation</div>
-            <button style="background:#f39c12" onclick="speakWithLipSync()">🗣️ Talk (Lip Sync)</button>
-            <button onclick="addSpeechBubble()">💬 Add Text</button>
-            
-            <div class="label-group">🏞️ Scenes</div>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-            
-            <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px;">🗑️ Delete</button>
+            <div class="bg-item" onclick="startWithBG('https://images.unsplash.com/photo-1497366216548-37526070297c?w=400')">
+                <img class="bg-thumb" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200">
+                <div class="bg-label">Office</div>
+            </div>
+            <div class="bg-item" onclick="startWithBG('https://images.unsplash.com/photo-1517733925043-473a941914ec?w=400')">
+                <img class="bg-thumb" src="https://images.unsplash.com/photo-1517733925043-473a941914ec?w=200">
+                <div class="bg-label">City</div>
+            </div>
         </div>
-
-        <div id="canvas-container">
-            <video id="bg-video" autoplay loop muted></video>
-            <canvas id="stage" width="800" height="450"></canvas>
-        </div>
+        <p style="color: gray; font-size: 12px;">Select a scene to enter the Manual Editor</p>
     </div>
 
-    <div class="toolbar" style="margin-top:20px;">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 12px 40px; font-size: 1.1em;">● Record Final</button>
-        <button style="background:#2ed573; padding: 12px 40px;" onclick="playRecording()">▶ Playback</button>
+    <div id="studio-screen" class="screen">
+        <div class="side-toolbar">
+            <div class="tool-btn" onclick="addChar('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">👦</div>
+            <div class="tool-btn" onclick="addChar('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')">👧</div>
+            <div class="tool-btn" onclick="addBubble()">💬</div>
+            <div class="tool-btn" style="background:#e67e22" onclick="showScreen('bg-screen')">🏞️</div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="mainStage"></canvas>
+            
+            <div class="bottom-bar">
+                <div class="rec-circle" id="recBtn" onclick="handleRec()"></div>
+                <button class="magic-ai-btn" style="background:var(--blue)" onclick="downloadVid()">Export</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const canvas = new fabric.Canvas('stage');
-        let recording = false, frames = [], history = [], recInterval;
-        let watermarkObj = null;
+        const canvas = new fabric.Canvas('mainStage');
+        let recording = false, frames = [];
 
-        // --- WATERMARK LOGIC ---
-        function updateWatermark() {
-            const text = document.getElementById('watermark-input').value;
-            if (watermarkObj) canvas.remove(watermarkObj);
-            
-            if (text.trim() !== "") {
-                watermarkObj = new fabric.Text(text, {
-                    fontSize: 18,
-                    fill: 'rgba(255,255,255,0.5)', // Transparent white
-                    left: canvas.width - 10,
-                    top: canvas.height - 10,
-                    originX: 'right',
-                    originY: 'bottom',
-                    selectable: false,
-                    evented: false
-                });
-                canvas.add(watermarkObj);
-                canvas.bringToFront(watermarkObj);
-            }
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
-        // Keep watermark in corner even when ratio changes
-        function repositionWatermark() {
-            if (watermarkObj) {
-                watermarkObj.set({ left: canvas.width - 10, top: canvas.height - 10 });
-                canvas.bringToFront(watermarkObj);
-                canvas.renderAll();
-            }
+        // --- AI AUTO-GENERATE (THE "ONE-TAP" CHOICE) ---
+        function aiAutoGenerate() {
+            startWithBG('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800'); // Beach
+            // Automatically add two characters facing each other
+            setTimeout(() => {
+                addChar('https://cdn-icons-png.flaticon.com/512/4333/4333609.png', 150);
+                addChar('https://cdn-icons-png.flaticon.com/512/4140/4140047.png', 450);
+                addBubble("AI Generated Story: Hello!");
+            }, 500);
         }
 
-        // --- CORE LOGIC ---
-        function setGreenScreen() {
-            canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
-            canvas.backgroundColor = '#00FF00';
-            document.getElementById('bg-video').style.display = 'none';
-            canvas.renderAll();
-        }
-
-        function loadVideoBackground(event) {
-            const video = document.getElementById('bg-video');
-            video.src = URL.createObjectURL(event.target.files[0]);
-            video.style.display = 'block';
-            canvas.backgroundColor = 'transparent';
-            video.play();
-        }
-
-        function addCharacter(url) {
+        function startWithBG(url) {
+            showScreen('studio-screen');
+            canvas.setDimensions({ width: 800, height: 450 });
             fabric.Image.fromURL(url, img => {
-                img.set({ left: 100, top: canvas.height, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
-                canvas.add(img); 
-                if(watermarkObj) canvas.bringToFront(watermarkObj);
-                saveHistory();
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
+                });
             }, { crossOrigin: 'anonymous' });
         }
 
-        function speakWithLipSync() {
-            const active = canvas.getActiveObject();
-            const bubble = canvas.getObjects().find(obj => obj.type === 'i-text');
-            if (!active || !bubble) return alert("Select character & add text!");
-            const msg = new SpeechSynthesisUtterance(bubble.text);
-            let talking = true;
-            function bounce() {
-                if (!talking) return;
-                active.animate('scaleY', 0.28, { duration: 150, onChange: canvas.renderAll.bind(canvas), 
-                    onComplete: () => active.animate('scaleY', 0.25, { duration: 150, onChange: canvas.renderAll.bind(canvas), onComplete: bounce })
-                });
-            }
-            msg.onstart = bounce; msg.onend = () => { talking = false; active.set('scaleY', 0.25); canvas.renderAll(); };
-            window.speechSynthesis.speak(msg);
+        function addChar(url, customLeft) {
+            fabric.Image.fromURL(url, img => {
+                img.set({ scaleX: 0.3, scaleY: 0.3, left: customLeft || 100, top: canvas.height, originY: 'bottom' });
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            }, { crossOrigin: 'anonymous' });
         }
 
-        function addSpeechBubble() {
-            canvas.add(new fabric.IText('Hello!', { fontSize: 24, left: 100, top: 100, backgroundColor: 'white', padding: 8 }));
-            if(watermarkObj) canvas.bringToFront(watermarkObj);
-            saveHistory();
+        function addBubble(text = "Tap to edit") {
+            const t = new fabric.IText(text, { fontSize: 22, left: 200, top: 100, backgroundColor: 'white', padding: 10, borderRadius: 10 });
+            canvas.add(t);
         }
 
-        function setRatio(ratio) {
-            if (ratio === '16:9') canvas.setDimensions({ width: 800, height: 450 });
-            else canvas.setDimensions({ width: 360, height: 640 });
-            repositionWatermark();
-        }
-
-        function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
-        function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
-        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); }
-        function saveProject() { localStorage.setItem('tweencraft_project', JSON.stringify(canvas)); alert("Saved!"); }
-
-        function toggleRecording() {
+        // --- RECORDING & EXPORT ---
+        function handleRec() {
             recording = !recording;
-            document.getElementById('recBtn').innerText = recording ? "■ Stop" : "● Record";
-            if (recording) { frames = []; recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50); }
-            else clearInterval(recInterval);
+            document.getElementById('recBtn').style.borderRadius = recording ? "10px" : "50%";
+            if(recording) {
+                frames = [];
+                recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 100);
+            } else clearInterval(recInterval);
         }
 
-        function playRecording() {
-            let i = 0;
-            const interval = setInterval(() => {
-                if (i >= frames.length) return clearInterval(interval);
-                canvas.loadFromJSON(frames[i], canvas.renderAll.bind(canvas));
-                i++;
-            }, 50);
-        }
-
-        async function downloadVideo() {
+        async function downloadVid() {
             const stream = document.querySelector('canvas').captureStream(30);
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const recorder = new MediaRecorder(stream);
             const chunks = [];
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-                a.download = 'my-branded-movie.webm'; a.click();
+                a.href = URL.createObjectURL(new Blob(chunks));
+                a.download = 'tweencraft_ai_video.webm'; a.click();
             };
             recorder.start();
             let i = 0;
-            const interval = setInterval(() => {
-                if (i >= frames.length) { recorder.stop(); return clearInterval(interval); }
-                canvas.loadFromJSON(frames[i], canvas.renderAll.bind(canvas));
-                i++;
-            }, 50);
+            const play = setInterval(() => {
+                if(i >= frames.length) { recorder.stop(); clearInterval(play); }
+                else { canvas.loadFromJSON(frames[i], () => canvas.renderAll()); i++; }
+            }, 100);
         }
     </script>
 </body>
