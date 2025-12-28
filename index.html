@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Pro - Chroma Key Studio</title>
+    <title>TweenCraft Pro - Watermark Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #0a0a12; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -16,16 +16,17 @@
         .label-group { font-size: 0.7rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #34495e; padding-bottom: 3px; }
         .btn-green { background: #2ecc71; color: #000; }
         .btn-rec { background: #e94560; }
+        #watermark-input { padding: 5px; border-radius: 4px; border: none; font-size: 12px; width: 90%; }
         video#bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none; }
     </style>
 </head>
 <body>
 
-    <h1>🎬 TweenCraft Chroma Studio</h1>
+    <h1>🎬 TweenCraft Branding Studio</h1>
     
     <div class="toolbar">
-        <button class="btn-green" onclick="setGreenScreen()">🟢 Green Screen Mode</button>
-        <button style="background:#9b59b6" onclick="document.getElementById('videoUpload').click()">📽️ Import BG Video</button>
+        <button class="btn-green" onclick="setGreenScreen()">🟢 Green Screen</button>
+        <button style="background:#9b59b6" onclick="document.getElementById('videoUpload').click()">📽️ BG Video</button>
         <input type="file" id="videoUpload" accept="video/*" style="display:none" onchange="loadVideoBackground(event)">
         |
         <button onclick="setRatio('16:9')">📺 16:9</button>
@@ -36,6 +37,9 @@
 
     <div class="main-layout">
         <div class="sidebar">
+            <div class="label-group">🏷️ Watermark / Branding</div>
+            <input type="text" id="watermark-input" placeholder="Enter your name/logo..." oninput="updateWatermark()">
+            
             <div class="label-group">🎭 Characters</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
                 <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">Boy</button>
@@ -45,8 +49,7 @@
             <div class="label-group">🎬 Animation</div>
             <button style="background:#f39c12" onclick="speakWithLipSync()">🗣️ Talk (Lip Sync)</button>
             <button onclick="addSpeechBubble()">💬 Add Text</button>
-            <button onclick="autoAnimateWalk()" style="background:#00d2ff; color:#000">🚶 Auto-Walk</button>
-
+            
             <div class="label-group">🏞️ Scenes</div>
             <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
             <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
@@ -68,31 +71,60 @@
     <script>
         const canvas = new fabric.Canvas('stage');
         let recording = false, frames = [], history = [], recInterval;
+        let watermarkObj = null;
 
-        // --- CHROMA KEY & VIDEO BG LOGIC ---
+        // --- WATERMARK LOGIC ---
+        function updateWatermark() {
+            const text = document.getElementById('watermark-input').value;
+            if (watermarkObj) canvas.remove(watermarkObj);
+            
+            if (text.trim() !== "") {
+                watermarkObj = new fabric.Text(text, {
+                    fontSize: 18,
+                    fill: 'rgba(255,255,255,0.5)', // Transparent white
+                    left: canvas.width - 10,
+                    top: canvas.height - 10,
+                    originX: 'right',
+                    originY: 'bottom',
+                    selectable: false,
+                    evented: false
+                });
+                canvas.add(watermarkObj);
+                canvas.bringToFront(watermarkObj);
+            }
+        }
+
+        // Keep watermark in corner even when ratio changes
+        function repositionWatermark() {
+            if (watermarkObj) {
+                watermarkObj.set({ left: canvas.width - 10, top: canvas.height - 10 });
+                canvas.bringToFront(watermarkObj);
+                canvas.renderAll();
+            }
+        }
+
+        // --- CORE LOGIC ---
         function setGreenScreen() {
             canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
-            canvas.backgroundColor = '#00FF00'; // Pure Chroma Green
+            canvas.backgroundColor = '#00FF00';
             document.getElementById('bg-video').style.display = 'none';
             canvas.renderAll();
-            saveHistory();
         }
 
         function loadVideoBackground(event) {
-            const file = event.target.files[0];
-            const url = URL.createObjectURL(file);
             const video = document.getElementById('bg-video');
-            video.src = url;
+            video.src = URL.createObjectURL(event.target.files[0]);
             video.style.display = 'block';
             canvas.backgroundColor = 'transparent';
             video.play();
         }
 
-        // --- CORE LOGIC ---
         function addCharacter(url) {
             fabric.Image.fromURL(url, img => {
                 img.set({ left: 100, top: canvas.height, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
-                canvas.add(img); canvas.setActiveObject(img); saveHistory();
+                canvas.add(img); 
+                if(watermarkObj) canvas.bringToFront(watermarkObj);
+                saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
 
@@ -114,26 +146,19 @@
 
         function addSpeechBubble() {
             canvas.add(new fabric.IText('Hello!', { fontSize: 24, left: 100, top: 100, backgroundColor: 'white', padding: 8 }));
+            if(watermarkObj) canvas.bringToFront(watermarkObj);
             saveHistory();
-        }
-
-        function changeBG(url) {
-            document.getElementById('bg-video').style.display = 'none';
-            fabric.Image.fromURL(url, img => {
-                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), { scaleX: canvas.width / img.width, scaleY: canvas.height / img.height });
-                saveHistory();
-            }, { crossOrigin: 'anonymous' });
         }
 
         function setRatio(ratio) {
             if (ratio === '16:9') canvas.setDimensions({ width: 800, height: 450 });
             else canvas.setDimensions({ width: 360, height: 640 });
-            canvas.renderAll();
+            repositionWatermark();
         }
 
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
-        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); }
+        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); }
         function saveProject() { localStorage.setItem('tweencraft_project', JSON.stringify(canvas)); alert("Saved!"); }
 
         function toggleRecording() {
@@ -160,7 +185,7 @@
             recorder.onstop = () => {
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-                a.download = 'tweencraft-movie.webm'; a.click();
+                a.download = 'my-branded-movie.webm'; a.click();
             };
             recorder.start();
             let i = 0;
