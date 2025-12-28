@@ -3,39 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web - Movie Maker</title>
+    <title>TweenCraft Web - Custom Uploads</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a2e; color: white; margin: 0; padding: 20px; }
         #canvas-container { margin: 10px auto; border: 4px solid #16213e; width: 800px; background: white; border-radius: 10px; overflow: hidden; }
         .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: inline-block; width: 800px; }
-        .library { background: #16213e; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: center; gap: 15px; }
+        .library { background: #16213e; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 15px; }
         .char-option { cursor: pointer; transition: 0.2s; border-radius: 5px; background: #2c3e50; padding: 5px; }
         .char-option:hover { transform: scale(1.1); background: #e94560; }
         .char-option img { width: 50px; height: 50px; }
         .recording-bar { background: #16213e; padding: 15px; border-radius: 15px; width: 800px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
         button { padding: 10px 15px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
-        .btn-rec { background: #ff4757; color: white; }
-        .btn-play { background: #2ed573; color: white; }
-        .btn-vid { background: #9b59b6; color: white; }
+        .btn-upload { background: #2ecc71; color: white; }
         .btn-tool { background: #00d2ff; color: white; }
+        .btn-rec { background: #ff4757; color: white; }
+        input[type="file"] { display: none; } /* Hide the ugly default file input */
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Web Movie Maker</h1>
+    <h1>TweenCraft Web Animator</h1>
     
     <div class="toolbar">
         <div class="library">
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1998/1998592.png')"><img src="https://cdn-icons-png.flaticon.com/512/1998/1998592.png"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png"></div>
+            <strong>Library:</strong>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')"><img src="https://cdn-icons-png.flaticon.com/512/3593/3593311.png" title="Stickman"></div>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" title="Robot"></div>
+            
+            <label class="btn-upload" style="padding: 10px; border-radius: 8px; cursor: pointer; margin-left: 20px;">
+                📂 Upload Custom Stickman
+                <input type="file" id="fileInput" accept="image/*">
+            </label>
         </div>
 
         <button class="btn-tool" onclick="addSpeechBubble()">💬 Add Speech</button>
         <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-        <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-        <button class="btn-vid" onclick="downloadVideo()">🎥 Download Video</button>
+        <button class="btn-tool" style="background:#9b59b6" onclick="downloadVideo()">🎥 Download Video</button>
     </div>
 
     <div id="canvas-container">
@@ -44,7 +48,7 @@
 
     <div class="recording-bar">
         <button class="btn-rec" id="recBtn" onclick="toggleRecording()">● Start Recording</button>
-        <button class="btn-play" onclick="playRecording()">▶ Play Animation</button>
+        <button style="background:#2ed573; color:white;" onclick="playRecording()">▶ Play</button>
     </div>
 
     <script>
@@ -53,9 +57,24 @@
         let frames = [];
         let recInterval;
 
+        // Handle File Upload
+        document.getElementById('fileInput').onchange = function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imgObj = new Image();
+                imgObj.src = event.target.result;
+                imgObj.onload = function() {
+                    const image = new fabric.Image(imgObj);
+                    image.set({ left: 100, top: 100, scaleX: 0.2, scaleY: 0.2 });
+                    canvas.add(image);
+                }
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
         function addCharacter(url) {
             fabric.Image.fromURL(url, function(img) {
-                img.set({ left: 100, top: 200, scaleX: 0.25, scaleY: 0.25 });
+                img.set({ left: 150, top: 200, scaleX: 0.25, scaleY: 0.25 });
                 canvas.add(img);
             }, { crossOrigin: 'anonymous' });
         }
@@ -69,7 +88,7 @@
         }
 
         function addSpeechBubble() {
-            const text = new fabric.IText('Hello!', { fontSize: 25, left: 300, top: 100, backgroundColor: 'white' });
+            const text = new fabric.IText('Yo!', { fontSize: 25, left: 300, top: 100, backgroundColor: 'white' });
             canvas.add(text);
         }
 
@@ -87,7 +106,7 @@
         }
 
         function playRecording() {
-            if (frames.length === 0) return alert("Record something first!");
+            if (frames.length === 0) return;
             let i = 0;
             const interval = setInterval(() => {
                 if (i >= frames.length) return clearInterval(interval);
@@ -96,40 +115,28 @@
             }, 50);
         }
 
-        // --- THE VIDEO EXPORT ENGINE ---
         async function downloadVideo() {
-            if (frames.length === 0) return alert("Record an animation first!");
-            
+            if (frames.length === 0) return;
             const stream = document.querySelector('canvas').captureStream(30);
             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
             const chunks = [];
-
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'my-cartoon.webm';
-                a.click();
+                a.href = url; a.download = 'movie.webm'; a.click();
             };
-
             recorder.start();
-            
-            // Replay frames to "film" them
             let i = 0;
             const interval = setInterval(() => {
-                if (i >= frames.length) {
-                    clearInterval(interval);
-                    recorder.stop();
-                    return;
-                }
+                if (i >= frames.length) { recorder.stop(); return clearInterval(interval); }
                 canvas.loadFromJSON(frames[i], canvas.renderAll.bind(canvas));
                 i++;
             }, 50);
         }
 
-        addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png');
+        addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png'); // Start with stickman
     </script>
 </body>
 </html>
