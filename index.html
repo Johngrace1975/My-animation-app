@@ -3,53 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web Pro</title>
+    <title>TweenCraft Web - Pro Animator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a2e; color: white; margin: 0; padding: 20px; }
         #canvas-container { margin: 10px auto; border: 4px solid #16213e; width: 800px; background: white; border-radius: 10px; overflow: hidden; }
-        .toolbar { background: #0f3460; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: inline-block; }
-        .section { margin-bottom: 10px; border-bottom: 1px solid #16213e; padding-bottom: 10px; }
+        .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: inline-block; width: 800px; }
+        .recording-bar { background: #16213e; padding: 15px; border-radius: 15px; width: 800px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
         button { padding: 10px 15px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
+        .btn-rec { background: #ff4757; color: white; }
+        .btn-play { background: #2ed573; color: white; }
         .btn-main { background: #e94560; color: white; }
         .btn-tool { background: #00d2ff; color: white; }
-        .btn-sound { background: #6a0572; color: white; }
-        .btn-save { background: #2ecc71; color: white; width: 100%; margin-top: 10px; font-size: 1.1em; }
-        button:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #555; display: inline-block; }
+        .recording .status-dot { background: #ff4757; box-shadow: 0 0 8px #ff4757; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Web Editor</h1>
+    <h1>TweenCraft Web Animator</h1>
     
     <div class="toolbar">
-        <div class="section">
-            <strong>Create:</strong>
-            <button class="btn-main" onclick="addCharacter()">+ Character</button>
-            <button class="btn-main" style="background:#f9d423; color:black;" onclick="addSpeechBubble()">💬 Add Speech</button>
-        </div>
-        
-        <div class="section">
-            <strong>Scenes:</strong>
-            <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-            <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-        </div>
-
-        <div class="section">
-            <strong>FX:</strong>
-            <button class="btn-sound" onclick="playSound('https://www.soundjay.com/buttons/sounds/button-4.mp3')">✨ Magic</button>
-            <button class="btn-sound" onclick="playSound('https://www.soundjay.com/communication/sounds/megaphone-1.mp3')">📢 Alert</button>
-        </div>
-
-        <button class="btn-save" onclick="downloadImage()">📸 Download Image</button>
+        <button class="btn-main" onclick="addCharacter()">+ Character</button>
+        <button class="btn-main" style="background:#f9d423; color:black;" onclick="addSpeechBubble()">💬 Speech</button>
+        <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
+        <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
+        <button class="btn-tool" style="background:#95a5a6" onclick="downloadImage()">📸 Save Photo</button>
     </div>
 
     <div id="canvas-container">
         <canvas id="stage" width="800" height="500"></canvas>
     </div>
 
+    <div class="recording-bar" id="recBar">
+        <div class="status-dot"></div>
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()">● Start Recording</button>
+        <button class="btn-play" onclick="playRecording()">▶ Play Animation</button>
+        <span id="frameCounter">Frames: 0</span>
+    </div>
+
     <script>
         const canvas = new fabric.Canvas('stage');
+        let recording = false;
+        let frames = []; // This stores the animation data
+        let recInterval;
 
         function addCharacter() {
             const charUrl = 'https://cdn-icons-png.flaticon.com/512/3426/3426653.png';
@@ -63,41 +61,60 @@
         function changeBG(url) {
             fabric.Image.fromURL(url, function(img) {
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                    scaleX: canvas.width / img.width,
-                    scaleY: canvas.height / img.height
+                    scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
                 });
             });
         }
 
         function addSpeechBubble() {
-            const activeObj = canvas.getActiveObject();
-            if (!activeObj) return alert("Select a character first!");
-
-            const text = new fabric.IText('Hello!', {
-                fontSize: 22, left: activeObj.left + 50, top: activeObj.top - 60,
-                backgroundColor: 'white', padding: 10
-            });
+            const text = new fabric.IText('Hello!', { fontSize: 22, left: 200, top: 100, backgroundColor: 'white', padding: 10 });
             canvas.add(text);
-            canvas.setActiveObject(text);
         }
 
-        function playSound(url) {
-            const audio = new Audio(url);
-            audio.play();
+        // --- ANIMATION LOGIC ---
+
+        function toggleRecording() {
+            recording = !recording;
+            const btn = document.getElementById('recBtn');
+            const bar = document.getElementById('recBar');
+            
+            if (recording) {
+                frames = []; // Clear old recording
+                btn.innerText = "■ Stop Recording";
+                bar.classList.add('recording');
+                // Capture state every 50ms
+                recInterval = setInterval(() => {
+                    frames.push(JSON.stringify(canvas));
+                    document.getElementById('frameCounter').innerText = "Frames: " + frames.length;
+                }, 50);
+            } else {
+                btn.innerText = "● Start Recording";
+                bar.classList.remove('recording');
+                clearInterval(recInterval);
+            }
+        }
+
+        function playRecording() {
+            if (frames.length === 0) return alert("Record something first!");
+            let currentFrame = 0;
+            const playInterval = setInterval(() => {
+                if (currentFrame >= frames.length) {
+                    clearInterval(playInterval);
+                    return;
+                }
+                canvas.loadFromJSON(frames[currentFrame], canvas.renderAll.bind(canvas));
+                currentFrame++;
+            }, 50);
         }
 
         function downloadImage() {
-            const dataURL = canvas.toDataURL({
-                format: 'png',
-                quality: 1
-            });
+            const dataURL = canvas.toDataURL({format: 'png'});
             const link = document.createElement('a');
-            link.download = 'my-animation-scene.png';
+            link.download = 'scene.png';
             link.href = dataURL;
             link.click();
         }
 
-        // Auto-add character on start
         addCharacter();
     </script>
 </body>
