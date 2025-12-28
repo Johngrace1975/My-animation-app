@@ -3,56 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Pro - Launch Edition</title>
+    <title>TweenCraft Pro - Chroma Key Studio</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #0a0a12; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .main-layout { display: flex; gap: 15px; max-width: 1300px; width: 100%; justify-content: center; }
-        #canvas-container { border: 4px solid #16213e; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px #3498db; display: flex; align-items: center; justify-content: center; background: #222; }
+        #canvas-container { border: 4px solid #3498db; border-radius: 10px; overflow: hidden; background: #222; position: relative; }
         .sidebar { width: 240px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; max-height: 85vh; overflow-y: auto; }
         .toolbar { background: #16213e; padding: 15px; border-radius: 15px; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; border: 1px solid #3498db; }
         button { padding: 8px; cursor: pointer; font-weight: bold; border-radius: 6px; border: none; transition: 0.2s; background: #3498db; color: white; font-size: 12px; }
         button:hover { filter: brightness(1.2); transform: scale(1.05); }
         .label-group { font-size: 0.7rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #34495e; padding-bottom: 3px; }
+        .btn-green { background: #2ecc71; color: #000; }
         .btn-rec { background: #e94560; }
-        .btn-sfx { background: #8e44ad; }
-        .btn-fx { background: #f1c40f; color: #000; }
+        video#bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none; }
     </style>
 </head>
 <body>
 
-    <h1>🚀 TweenCraft Studio Launch</h1>
+    <h1>🎬 TweenCraft Chroma Studio</h1>
     
     <div class="toolbar">
-        <button class="btn-fx" onclick="celebrate()">🎉 Launch Confetti</button>
+        <button class="btn-green" onclick="setGreenScreen()">🟢 Green Screen Mode</button>
+        <button style="background:#9b59b6" onclick="document.getElementById('videoUpload').click()">📽️ Import BG Video</button>
+        <input type="file" id="videoUpload" accept="video/*" style="display:none" onchange="loadVideoBackground(event)">
+        |
         <button onclick="setRatio('16:9')">📺 16:9</button>
         <button onclick="setRatio('9:16')">📱 9:16</button>
         <button style="background:#2ecc71" onclick="saveProject()">💾 Save</button>
-        <button style="background:#9b59b6" onclick="downloadVideo()">📤 Export Movie</button>
         <button style="background:#f1c40f; color:#000" onclick="undo()">↩️ Undo</button>
     </div>
 
     <div class="main-layout">
         <div class="sidebar">
-            <div class="label-group">🔊 Sound FX Library</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                <button class="btn-sfx" onclick="playSFX('https://www.myinstants.com/media/sounds/boing_2.mp3')">🥎 Boing</button>
-                <button class="btn-sfx" onclick="playSFX('https://www.myinstants.com/media/sounds/pop-94319.mp3')">🎈 Pop</button>
-                <button class="btn-sfx" onclick="playSFX('https://www.myinstants.com/media/sounds/applause-2.mp3')">👏 Clap</button>
-                <button class="btn-sfx" onclick="playSFX('https://www.myinstants.com/media/sounds/cartoon-laugh.mp3')">😂 Laugh</button>
-            </div>
-
             <div class="label-group">🎭 Characters</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
                 <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">Boy</button>
                 <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')">Girl</button>
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')">Robot</button>
-                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1083/1083545.png')">Ghost</button>
             </div>
 
-            <div class="label-group">💬 Dialogue</div>
-            <button onclick="addSpeechBubble()">💬 Add Bubble</button>
-            <button style="background:#f39c12" onclick="speakWithLipSync()">🗣️ Lip Sync Talk</button>
+            <div class="label-group">🎬 Animation</div>
+            <button style="background:#f39c12" onclick="speakWithLipSync()">🗣️ Talk (Lip Sync)</button>
+            <button onclick="addSpeechBubble()">💬 Add Text</button>
+            <button onclick="autoAnimateWalk()" style="background:#00d2ff; color:#000">🚶 Auto-Walk</button>
 
             <div class="label-group">🏞️ Scenes</div>
             <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
@@ -62,60 +55,51 @@
         </div>
 
         <div id="canvas-container">
+            <video id="bg-video" autoplay loop muted></video>
             <canvas id="stage" width="800" height="450"></canvas>
         </div>
     </div>
 
     <div class="toolbar" style="margin-top:20px;">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 12px 40px; font-size: 1.1em;">● Record Scene</button>
-        <button style="background:#2ed573; padding: 12px 40px; font-size: 1.1em;" onclick="playRecording()">▶ Playback</button>
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 12px 40px; font-size: 1.1em;">● Record Final</button>
+        <button style="background:#2ed573; padding: 12px 40px;" onclick="playRecording()">▶ Playback</button>
     </div>
 
     <script>
         const canvas = new fabric.Canvas('stage');
         let recording = false, frames = [], history = [], recInterval;
 
-        // --- NEW SOUND & FX LOGIC ---
-        function playSFX(url) {
-            const audio = new Audio(url);
-            audio.play();
-        }
-
-        function celebrate() {
-            for(let i=0; i<20; i++) {
-                const rect = new fabric.Rect({
-                    width: 10, height: 10, fill: ['#f1c40f','#e94560','#3498db','#2ecc71'][Math.floor(Math.random()*4)],
-                    left: Math.random() * canvas.width, top: -20, angle: Math.random() * 360
-                });
-                canvas.add(rect);
-                rect.animate({ top: canvas.height + 20, angle: 720 }, {
-                    duration: 1500 + Math.random() * 1000,
-                    onChange: canvas.renderAll.bind(canvas),
-                    onComplete: () => canvas.remove(rect)
-                });
-            }
-        }
-
-        // --- ASPECT RATIO ---
-        function setRatio(ratio) {
-            if (ratio === '16:9') canvas.setDimensions({ width: 800, height: 450 });
-            else canvas.setDimensions({ width: 360, height: 640 });
+        // --- CHROMA KEY & VIDEO BG LOGIC ---
+        function setGreenScreen() {
+            canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+            canvas.backgroundColor = '#00FF00'; // Pure Chroma Green
+            document.getElementById('bg-video').style.display = 'none';
             canvas.renderAll();
+            saveHistory();
         }
 
-        // --- CHARACTER & STUDIO LOGIC ---
+        function loadVideoBackground(event) {
+            const file = event.target.files[0];
+            const url = URL.createObjectURL(file);
+            const video = document.getElementById('bg-video');
+            video.src = url;
+            video.style.display = 'block';
+            canvas.backgroundColor = 'transparent';
+            video.play();
+        }
+
+        // --- CORE LOGIC ---
         function addCharacter(url) {
             fabric.Image.fromURL(url, img => {
-                img.set({ left: 100, top: canvas.height - 20, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
-                canvas.add(img); canvas.setActiveObject(img);
-                saveHistory();
+                img.set({ left: 100, top: canvas.height, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
+                canvas.add(img); canvas.setActiveObject(img); saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
 
         function speakWithLipSync() {
             const active = canvas.getActiveObject();
             const bubble = canvas.getObjects().find(obj => obj.type === 'i-text');
-            if (!active || !bubble) return alert("Select character & add text bubble!");
+            if (!active || !bubble) return alert("Select character & add text!");
             const msg = new SpeechSynthesisUtterance(bubble.text);
             let talking = true;
             function bounce() {
@@ -124,8 +108,7 @@
                     onComplete: () => active.animate('scaleY', 0.25, { duration: 150, onChange: canvas.renderAll.bind(canvas), onComplete: bounce })
                 });
             }
-            msg.onstart = bounce;
-            msg.onend = () => { talking = false; active.set('scaleY', 0.25); canvas.renderAll(); };
+            msg.onstart = bounce; msg.onend = () => { talking = false; active.set('scaleY', 0.25); canvas.renderAll(); };
             window.speechSynthesis.speak(msg);
         }
 
@@ -135,23 +118,29 @@
         }
 
         function changeBG(url) {
+            document.getElementById('bg-video').style.display = 'none';
             fabric.Image.fromURL(url, img => {
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), { scaleX: canvas.width / img.width, scaleY: canvas.height / img.height });
                 saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
 
+        function setRatio(ratio) {
+            if (ratio === '16:9') canvas.setDimensions({ width: 800, height: 450 });
+            else canvas.setDimensions({ width: 360, height: 640 });
+            canvas.renderAll();
+        }
+
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
         function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); }
-        function saveProject() { localStorage.setItem('tweencraft_project', JSON.stringify(canvas)); alert("Scene Saved!"); }
+        function saveProject() { localStorage.setItem('tweencraft_project', JSON.stringify(canvas)); alert("Saved!"); }
 
-        // --- RECORDING ---
         function toggleRecording() {
             recording = !recording;
             document.getElementById('recBtn').innerText = recording ? "■ Stop" : "● Record";
             if (recording) { frames = []; recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50); }
-            else { clearInterval(recInterval); }
+            else clearInterval(recInterval);
         }
 
         function playRecording() {
