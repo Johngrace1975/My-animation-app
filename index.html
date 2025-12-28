@@ -3,144 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web - Undo Feature</title>
+    <title>TweenCraft Web - Ultra Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a2e; color: white; margin: 0; padding: 20px; }
-        #canvas-container { margin: 10px auto; border: 4px solid #16213e; width: 800px; background: white; border-radius: 10px; overflow: hidden; }
-        .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: inline-block; width: 800px; }
-        .library { background: #16213e; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 15px; }
-        .char-option { cursor: pointer; transition: 0.2s; border-radius: 5px; background: #2c3e50; padding: 5px; }
-        .char-option:hover { transform: scale(1.1); background: #e94560; }
-        .char-option img { width: 45px; height: 45px; }
-        .recording-bar { background: #16213e; padding: 15px; border-radius: 15px; width: 800px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        button { padding: 8px 12px; margin: 3px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .main-layout { display: flex; gap: 20px; }
+        #canvas-container { border: 4px solid #16213e; background: white; border-radius: 10px; overflow: hidden; }
+        .sidebar { width: 250px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        button { padding: 8px 12px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; background: #3498db; color: white; }
+        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn-rec { background: #e94560; }
         .btn-undo { background: #f1c40f; color: #2c3e50; }
-        .btn-delete { background: #ff4757; color: white; }
-        .btn-tool { background: #3498db; color: white; }
-        .btn-layer { background: #f39c12; color: white; }
+        input[type="color"] { border: none; width: 40px; height: 40px; cursor: pointer; background: none; }
+        .label-group { font-size: 0.8em; color: #95a5a6; margin-top: 5px; text-transform: uppercase; }
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Web Animator</h1>
+    <h1>TweenCraft Ultra Studio</h1>
     
     <div class="toolbar">
-        <div class="library">
-            <strong>Add:</strong>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')"><img src="https://cdn-icons-png.flaticon.com/512/3593/3593311.png"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"></div>
-            <label class="btn-tool" style="background:#2ecc71; cursor:pointer;">📂 Upload <input type="file" id="fileInput" accept="image/*"></label>
-            <button class="btn-tool" onclick="addSpeechBubble()">💬 Speech</button>
+        <button class="btn-undo" onclick="undo()">↩️ Undo</button>
+        <button style="background:#2ecc71" onclick="document.getElementById('fileInput').click()">📁 Import Image</button>
+        <button style="background:#9b59b6" onclick="document.getElementById('audioInput').click()">🎵 Upload MP3</button>
+        <button style="background:#e67e22" onclick="speakText()">🗣️ Text to Audio</button>
+        <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Export Movie</button>
+        <input type="file" id="fileInput" accept="image/*">
+        <input type="file" id="audioInput" accept="audio/*">
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="label-group">Characters</div>
+            <div style="display:flex; gap:5px;">
+                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')">🧍</button>
+                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">👦</button>
+                <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')">🤖</button>
+            </div>
+
+            <div class="label-group">Scenes</div>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1500624285677-83183b9995c8?w=800')">Forest</button>
+
+            <div class="label-group">Advanced Edit</div>
+            <button onclick="addSpeechBubble()">💬 Add Speech</button>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span>Text Color:</span>
+                <input type="color" id="textColor" onchange="changeColor(this.value)">
+            </div>
+            <button onclick="flipObject()">↔️ Mirror</button>
+            <button onclick="deleteSelected()" class="btn-rec">🗑️ Delete</button>
         </div>
 
-        <div>
-            <strong>Edit:</strong>
-            <button class="btn-undo" onclick="undo()">↩️ Undo</button>
-            <button class="btn-delete" onclick="deleteSelected()">🗑️ Delete</button>
-            <button class="btn-tool" onclick="flipObject()">↔️ Flip</button>
-            <button class="btn-layer" onclick="bringToFront()">⬆️ Front</button>
-            <button class="btn-layer" onclick="sendToBack()">⬇️ Back</button>
-        </div>
-        
-        <div style="margin-top:10px;">
-            <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-            <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-            <button class="btn-tool" style="background:#9b59b6" onclick="downloadVideo()">🎥 Download Video</button>
+        <div id="canvas-container">
+            <canvas id="stage" width="800" height="500"></canvas>
         </div>
     </div>
 
-    <div id="canvas-container">
-        <canvas id="stage" width="800" height="500"></canvas>
-    </div>
-
-    <div class="recording-bar">
-        <button style="background:#ff4757; color:white;" id="recBtn" onclick="toggleRecording()">● Record</button>
-        <button style="background:#2ed573; color:white;" onclick="playRecording()">▶ Play</button>
+    <div class="toolbar" style="margin-top:20px;">
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()">● Record Scene</button>
+        <button style="background:#2ed573" onclick="playRecording()">▶ Play Animation</button>
     </div>
 
     <script>
         const canvas = new fabric.Canvas('stage');
-        let recording = false;
-        let frames = [];
-        let recInterval;
-        
-        // --- UNDO LOGIC ---
-        let history = [];
-        
-        function saveHistory() {
-            if (history.length > 20) history.shift(); // Keep last 20 steps
-            history.push(JSON.stringify(canvas));
-        }
+        let recording = false, frames = [], history = [], recInterval;
 
+        function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         canvas.on('object:modified', saveHistory);
-        canvas.on('object:added', saveHistory);
-
-        function undo() {
-            if (history.length > 0) {
-                const lastState = history.pop();
-                // If the current state is the one we just popped, pop again
-                if (JSON.stringify(canvas) === lastState && history.length > 0) {
-                    canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas));
-                } else {
-                    canvas.loadFromJSON(lastState, canvas.renderAll.bind(canvas));
-                }
-            }
-        }
-
-        // --- CORE FUNCTIONS ---
-        function flipObject() {
-            const activeObj = canvas.getActiveObject();
-            if (activeObj) { activeObj.set('flipX', !activeObj.flipX); canvas.renderAll(); saveHistory(); }
-        }
-
-        function deleteSelected() {
-            const activeObjects = canvas.getActiveObjects();
-            canvas.discardActiveObject();
-            activeObjects.forEach(obj => canvas.remove(obj));
-            saveHistory();
-        }
-
-        function bringToFront() {
-            const activeObj = canvas.getActiveObject();
-            if (activeObj) { canvas.bringToFront(activeObj); saveHistory(); }
-        }
-
-        function sendToBack() {
-            const activeObj = canvas.getActiveObject();
-            if (activeObj) {
-                canvas.sendToBack(activeObj);
-                if (canvas.backgroundImage) canvas.sendToBack(canvas.backgroundImage);
-                saveHistory();
-            }
-        }
-
-        document.getElementById('fileInput').onchange = function(e) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const imgObj = new Image();
-                imgObj.src = event.target.result;
-                imgObj.onload = function() {
-                    const image = new fabric.Image(imgObj);
-                    image.set({ left: 100, top: 100, scaleX: 0.2, scaleY: 0.2 });
-                    canvas.add(image);
-                    saveHistory();
-                }
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        };
 
         function addCharacter(url) {
-            fabric.Image.fromURL(url, function(img) {
+            fabric.Image.fromURL(url, img => {
                 img.set({ left: 150, top: 200, scaleX: 0.25, scaleY: 0.25 });
-                canvas.add(img);
-                saveHistory();
+                canvas.add(img); saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
 
+        function addSpeechBubble() {
+            const text = new fabric.IText('Type here...', { fontSize: 24, left: 300, top: 100, backgroundColor: 'white', padding: 10 });
+            canvas.add(text); saveHistory();
+        }
+
+        function changeColor(color) {
+            const active = canvas.getActiveObject();
+            if (active && active.type === 'i-text') {
+                active.set('fill', color);
+                canvas.renderAll();
+                saveHistory();
+            }
+        }
+
+        function speakText() {
+            const active = canvas.getActiveObject();
+            if (active && active.type === 'i-text') {
+                const msg = new SpeechSynthesisUtterance(active.text);
+                window.speechSynthesis.speak(msg);
+            } else { alert("Select a speech bubble first!"); }
+        }
+
+        document.getElementById('audioInput').onchange = function(e) {
+            const url = URL.createObjectURL(e.target.files[0]);
+            const audio = new Audio(url);
+            audio.play();
+        };
+
         function changeBG(url) {
-            fabric.Image.fromURL(url, function(img) {
+            fabric.Image.fromURL(url, img => {
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
                     scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
                 });
@@ -148,28 +119,20 @@
             }, { crossOrigin: 'anonymous' });
         }
 
-        function addSpeechBubble() {
-            const text = new fabric.IText('Hello!', { fontSize: 25, left: 300, top: 100, backgroundColor: 'white' });
-            canvas.add(text);
-            saveHistory();
-        }
+        function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
+        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
+        function flipObject() { const obj = canvas.getActiveObject(); if(obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); } }
 
-        // --- ANIMATION ENGINE ---
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
             if (recording) {
-                frames = [];
-                btn.innerText = "■ Stop";
+                frames = []; btn.innerText = "■ Stop";
                 recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50);
-            } else {
-                btn.innerText = "● Record";
-                clearInterval(recInterval);
-            }
+            } else { btn.innerText = "● Record Scene"; clearInterval(recInterval); }
         }
 
         function playRecording() {
-            if (frames.length === 0) return;
             let i = 0;
             const interval = setInterval(() => {
                 if (i >= frames.length) return clearInterval(interval);
@@ -179,16 +142,14 @@
         }
 
         async function downloadVideo() {
-            if (frames.length === 0) return alert("Record an animation first!");
             const stream = document.querySelector('canvas').captureStream(30);
             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
             const chunks = [];
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = 'movie.webm'; a.click();
+                a.href = URL.createObjectURL(blob); a.download = 'movie.webm'; a.click();
             };
             recorder.start();
             let i = 0;
@@ -199,8 +160,6 @@
             }, 50);
         }
 
-        // Set initial state
-        canvas.backgroundColor = "white";
         addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png');
     </script>
 </body>
