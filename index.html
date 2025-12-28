@@ -3,32 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web - Ultra Edition</title>
+    <title>TweenCraft Ultra - Language Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .main-layout { display: flex; gap: 20px; }
         #canvas-container { border: 4px solid #16213e; background: white; border-radius: 10px; overflow: hidden; }
-        .sidebar { width: 250px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar { width: 260px; background: #0f3460; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 12px; }
         .toolbar { background: #0f3460; padding: 15px; border-radius: 15px; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        button { padding: 8px 12px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; background: #3498db; color: white; }
-        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        button, select { padding: 10px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; background: #3498db; color: white; }
+        select { background: #16213e; color: white; border: 1px solid #3498db; }
+        button:hover { filter: brightness(1.2); transform: translateY(-1px); }
         .btn-rec { background: #e94560; }
-        .btn-undo { background: #f1c40f; color: #2c3e50; }
-        input[type="color"] { border: none; width: 40px; height: 40px; cursor: pointer; background: none; }
-        .label-group { font-size: 0.8em; color: #95a5a6; margin-top: 5px; text-transform: uppercase; }
+        .label-group { font-size: 0.75rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #16213e; }
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Ultra Studio</h1>
+    <h1>TweenCraft Multi-Language Studio</h1>
     
     <div class="toolbar">
-        <button class="btn-undo" onclick="undo()">↩️ Undo</button>
-        <button style="background:#2ecc71" onclick="document.getElementById('fileInput').click()">📁 Import Image</button>
+        <button style="background:#f1c40f; color:#2c3e50" onclick="undo()">↩️ Undo</button>
+        <button style="background:#2ecc71" onclick="document.getElementById('fileInput').click()">📁 Import Stickman</button>
         <button style="background:#9b59b6" onclick="document.getElementById('audioInput').click()">🎵 Upload MP3</button>
-        <button style="background:#e67e22" onclick="speakText()">🗣️ Text to Audio</button>
         <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Export Movie</button>
         <input type="file" id="fileInput" accept="image/*">
         <input type="file" id="audioInput" accept="audio/*">
@@ -36,26 +34,42 @@
 
     <div class="main-layout">
         <div class="sidebar">
-            <div class="label-group">Characters</div>
-            <div style="display:flex; gap:5px;">
+            <div class="label-group">1. Characters</div>
+            <div style="display:flex; gap:5px; justify-content: center;">
                 <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')">🧍</button>
                 <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">👦</button>
                 <button onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')">🤖</button>
             </div>
 
-            <div class="label-group">Scenes</div>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1500624285677-83183b9995c8?w=800')">Forest</button>
+            <div class="label-group">2. Language & Voice</div>
+            <select id="langSelect">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="es-ES">Spanish (Spain)</option>
+                <option value="fr-FR">French</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="ar-SA">Arabic</option>
+                <option value="pt-BR">Portuguese</option>
+            </select>
+            <button style="background:#e67e22" onclick="speakText()">🗣️ Speak Selected</button>
 
-            <div class="label-group">Advanced Edit</div>
+            <div class="label-group">3. Edit Scene</div>
             <button onclick="addSpeechBubble()">💬 Add Speech</button>
-            <div style="display:flex; align-items:center; gap:10px;">
+            <button onclick="flipObject()">↔️ Mirror Flip</button>
+            <div style="display:flex; align-items:center; gap:10px; font-size: 14px;">
                 <span>Text Color:</span>
-                <input type="color" id="textColor" onchange="changeColor(this.value)">
+                <input type="color" id="textColor" onchange="changeColor(this.value)" style="width:30px; height:30px;">
             </div>
-            <button onclick="flipObject()">↔️ Mirror</button>
-            <button onclick="deleteSelected()" class="btn-rec">🗑️ Delete</button>
+            
+            <div class="label-group">4. Scenes</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
+                <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
+                <button onclick="changeBG('https://images.unsplash.com/photo-1500624285677-83183b9995c8?w=800')">Forest</button>
+                <button onclick="changeBG('')">Plain</button>
+            </div>
+            
+            <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px;">🗑️ Delete Item</button>
         </div>
 
         <div id="canvas-container">
@@ -64,8 +78,8 @@
     </div>
 
     <div class="toolbar" style="margin-top:20px;">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()">● Record Scene</button>
-        <button style="background:#2ed573" onclick="playRecording()">▶ Play Animation</button>
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 30px;">● Start Recording</button>
+        <button style="background:#2ed573; padding: 15px 30px;" onclick="playRecording()">▶ Play Animation</button>
     </div>
 
     <script>
@@ -75,6 +89,17 @@
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         canvas.on('object:modified', saveHistory);
 
+        // --- NEW LANGUAGE SPEAK LOGIC ---
+        function speakText() {
+            const active = canvas.getActiveObject();
+            if (active && active.type === 'i-text') {
+                const msg = new SpeechSynthesisUtterance(active.text);
+                msg.lang = document.getElementById('langSelect').value;
+                window.speechSynthesis.speak(msg);
+            } else { alert("Select a speech bubble first!"); }
+        }
+
+        // --- CORE FUNCTIONS ---
         function addCharacter(url) {
             fabric.Image.fromURL(url, img => {
                 img.set({ left: 150, top: 200, scaleX: 0.25, scaleY: 0.25 });
@@ -83,34 +108,21 @@
         }
 
         function addSpeechBubble() {
-            const text = new fabric.IText('Type here...', { fontSize: 24, left: 300, top: 100, backgroundColor: 'white', padding: 10 });
+            const text = new fabric.IText('Hello!', { fontSize: 24, left: 300, top: 100, backgroundColor: 'white', padding: 10 });
             canvas.add(text); saveHistory();
         }
 
         function changeColor(color) {
             const active = canvas.getActiveObject();
-            if (active && active.type === 'i-text') {
-                active.set('fill', color);
-                canvas.renderAll();
-                saveHistory();
-            }
+            if (active && active.type === 'i-text') { active.set('fill', color); canvas.renderAll(); saveHistory(); }
         }
 
-        function speakText() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'i-text') {
-                const msg = new SpeechSynthesisUtterance(active.text);
-                window.speechSynthesis.speak(msg);
-            } else { alert("Select a speech bubble first!"); }
-        }
-
-        document.getElementById('audioInput').onchange = function(e) {
-            const url = URL.createObjectURL(e.target.files[0]);
-            const audio = new Audio(url);
-            audio.play();
-        };
+        function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
+        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
+        function flipObject() { const obj = canvas.getActiveObject(); if(obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); } }
 
         function changeBG(url) {
+            if(!url) { canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas)); return; }
             fabric.Image.fromURL(url, img => {
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
                     scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
@@ -119,17 +131,14 @@
             }, { crossOrigin: 'anonymous' });
         }
 
-        function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
-        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
-        function flipObject() { const obj = canvas.getActiveObject(); if(obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); } }
-
+        // --- ANIMATION & EXPORT ---
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
             if (recording) {
-                frames = []; btn.innerText = "■ Stop";
+                frames = []; btn.innerText = "■ Stop Recording";
                 recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50);
-            } else { btn.innerText = "● Record Scene"; clearInterval(recInterval); }
+            } else { btn.innerText = "● Start Recording"; clearInterval(recInterval); }
         }
 
         function playRecording() {
