@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Ultra - Pro Studio</title>
+    <title>TweenCraft Ultra - Lip Sync Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -18,48 +18,48 @@
         .char-card img { width: 50px; height: 50px; display: block; margin: 0 auto; }
         .label-group { font-size: 0.7rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #16213e; padding-bottom: 3px; }
         .btn-rec { background: #e94560; }
-        .btn-zoom { background: #6a0572; }
+        .btn-talk { background: #f39c12; animation: glow 2s infinite; }
+        @keyframes glow { 50% { box-shadow: 0 0 15px #f39c12; } }
     </style>
 </head>
 <body>
 
-    <h1>TweenCraft Movie Studio</h1>
+    <h1>TweenCraft Lip-Sync Studio</h1>
     
     <div class="toolbar">
         <button style="background:#f1c40f; color:#2c3e50" onclick="undo()">↩️ Undo</button>
-        <button class="btn-zoom" onclick="zoomIn()">🔍 Zoom In</button>
-        <button class="btn-zoom" onclick="zoomOut()">🔍 Zoom Out</button>
-        <button class="btn-zoom" onclick="resetZoom()">🏠 Reset Camera</button>
-        <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Save Movie (WEBM)</button>
+        <button onclick="zoomIn()">🔍 Zoom In</button>
+        <button onclick="zoomOut()">🔍 Zoom Out</button>
+        <button style="background:#2ecc71" onclick="downloadVideo()">🎥 Download Movie</button>
     </div>
 
     <div class="main-layout">
         <div class="sidebar">
-            <div class="label-group">Select Character</div>
+            <div class="label-group">Cast</div>
             <div class="char-grid">
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png">Boy</div>
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')"><img src="https://cdn-icons-png.flaticon.com/512/4140/4140047.png">Girl</div>
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">Robot</div>
-                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1998/1998592.png')"><img src="https://cdn-icons-png.flaticon.com/512/1998/1998592.png">Panda</div>
                 <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/1083/1083545.png')"><img src="https://cdn-icons-png.flaticon.com/512/1083/1083545.png">Monster</div>
-                <div class="char-card" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')"><img src="https://cdn-icons-png.flaticon.com/512/3593/3593311.png">Stick</div>
             </div>
 
-            <div class="label-group">Voice & Language</div>
-            <select id="langSelect" style="width:100%; padding:5px; border-radius:5px;">
+            <div class="label-group">Lip Sync & Voice</div>
+            <select id="langSelect" style="width:100%; margin-bottom:5px;">
                 <option value="en-US">English</option>
                 <option value="es-ES">Spanish</option>
-                <option value="hi-IN">Hindi</option>
+                <option value="fr-FR">French</option>
             </select>
-            <button style="background:#e67e22; width:100%" onclick="speakText()">🗣️ Speak Text</button>
+            <button class="btn-talk" style="width:100%" onclick="speakWithLipSync()">🗣️ Talk & Move</button>
 
-            <div class="label-group">Scene & FX</div>
-            <button onclick="addSpeechBubble()" style="width:100%">💬 Add Speech</button>
+            <div class="label-group">Actions</div>
+            <button onclick="addSpeechBubble()" style="width:100%">💬 Add Bubble</button>
             <button onclick="autoAnimateWalk()" style="width:100%; background:#00d2ff; color:#1a1a2e">🚶 Auto-Walk</button>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')" style="width:100%">🏞️ Park</button>
-            <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')" style="width:100%">🏙️ City</button>
             
-            <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px; width:100%">🗑️ Delete Item</button>
+            <div class="label-group">Scenes</div>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')" style="width:100%">Park</button>
+            <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')" style="width:100%">City</button>
+            
+            <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px; width:100%">🗑️ Delete</button>
         </div>
 
         <div id="canvas-container">
@@ -68,7 +68,7 @@
     </div>
 
     <div class="toolbar" style="margin-top:20px;">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 40px; font-size: 1.2em;">● Start Recording</button>
+        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" style="padding: 15px 40px; font-size: 1.2em;">● Record Scene</button>
         <button style="background:#2ed573; padding: 15px 40px; font-size: 1.2em;" onclick="playRecording()">▶ Playback</button>
     </div>
 
@@ -79,39 +79,59 @@
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         canvas.on('object:modified', saveHistory);
 
-        // --- CAMERA ZOOM LOGIC ---
+        // --- NEW LIP SYNC LOGIC ---
+        function speakWithLipSync() {
+            const active = canvas.getActiveObject();
+            const speechBubble = canvas.getObjects().find(obj => obj.type === 'i-text');
+            
+            if (!active || active.type !== 'image') return alert("Select a character first!");
+            if (!speechBubble) return alert("Add a speech bubble for the character to say!");
+
+            const msg = new SpeechSynthesisUtterance(speechBubble.text);
+            msg.lang = document.getElementById('langSelect').value;
+
+            // Start the "talking" bounce animation
+            let isTalking = true;
+            function bounce() {
+                if (!isTalking) return;
+                active.animate('scaleY', 0.28, {
+                    duration: 150,
+                    onChange: canvas.renderAll.bind(canvas),
+                    onComplete: () => {
+                        active.animate('scaleY', 0.25, {
+                            duration: 150,
+                            onChange: canvas.renderAll.bind(canvas),
+                            onComplete: bounce
+                        });
+                    }
+                });
+            }
+            
+            msg.onstart = () => bounce();
+            msg.onend = () => { isTalking = false; active.set('scaleY', 0.25); canvas.renderAll(); };
+            
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- CORE STUDIO TOOLS ---
         function zoomIn() { canvas.setZoom(canvas.getZoom() * 1.1); }
         function zoomOut() { canvas.setZoom(canvas.getZoom() / 1.1); }
-        function resetZoom() { canvas.setZoom(1); canvas.absolutePan({x:0, y:0}); }
 
         function addCharacter(url) {
             fabric.Image.fromURL(url, img => {
-                img.set({ left: 100, top: 250, scaleX: 0.25, scaleY: 0.25 });
+                img.set({ left: 100, top: 250, scaleX: 0.25, scaleY: 0.25, originY: 'bottom' });
                 canvas.add(img); canvas.setActiveObject(img); saveHistory();
             }, { crossOrigin: 'anonymous' });
-        }
-
-        function speakText() {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'i-text') {
-                const msg = new SpeechSynthesisUtterance(active.text);
-                msg.lang = document.getElementById('langSelect').value;
-                window.speechSynthesis.speak(msg);
-            }
-        }
-
-        function autoAnimateWalk() {
-            const active = canvas.getActiveObject();
-            if (active) {
-                active.animate('left', 600, {
-                    duration: 2000, onChange: canvas.renderAll.bind(canvas), onComplete: saveHistory
-                });
-            }
         }
 
         function addSpeechBubble() {
             const text = new fabric.IText('Hello!', { fontSize: 24, left: 300, top: 100, backgroundColor: 'white', padding: 8 });
             canvas.add(text); saveHistory();
+        }
+
+        function autoAnimateWalk() {
+            const active = canvas.getActiveObject();
+            if (active) active.animate('left', 600, { duration: 2000, onChange: canvas.renderAll.bind(canvas) });
         }
 
         function changeBG(url) {
@@ -126,13 +146,14 @@
         function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
         function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
 
+        // --- VIDEO ENGINE ---
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
             if (recording) {
                 frames = []; btn.innerText = "■ Stop Recording";
                 recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50);
-            } else { btn.innerText = "● Start Recording"; clearInterval(recInterval); }
+            } else { btn.innerText = "● Record Scene"; clearInterval(recInterval); }
         }
 
         function playRecording() {
@@ -152,7 +173,7 @@
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/webm' });
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob); a.download = 'my-movie.webm'; a.click();
+                a.href = URL.createObjectURL(blob); a.download = 'movie.webm'; a.click();
             };
             recorder.start();
             let i = 0;
