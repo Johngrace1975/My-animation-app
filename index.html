@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web - Ultimate Editor</title>
+    <title>TweenCraft Web - Layering Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a2e; color: white; margin: 0; padding: 20px; }
@@ -14,11 +14,11 @@
         .char-option:hover { transform: scale(1.1); background: #e94560; }
         .char-option img { width: 45px; height: 45px; }
         .recording-bar { background: #16213e; padding: 15px; border-radius: 15px; width: 800px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        button { padding: 10px 15px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
+        button { padding: 8px 12px; margin: 3px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
+        .btn-layer { background: #f39c12; color: white; }
         .btn-delete { background: #ff4757; color: white; }
-        .btn-clear { background: #7f8c8d; color: white; }
-        .btn-upload { background: #2ecc71; color: white; }
         .btn-tool { background: #3498db; color: white; }
+        .btn-upload { background: #2ecc71; color: white; }
         input[type="file"] { display: none; }
     </style>
 </head>
@@ -38,12 +38,18 @@
         </div>
 
         <div>
+            <strong>Edit Layers:</strong>
+            <button class="btn-layer" onclick="bringToFront()">⬆️ Bring to Front</button>
+            <button class="btn-layer" onclick="sendToBack()">⬇️ Send to Back</button>
+            |
+            <button class="btn-delete" onclick="deleteSelected()">🗑️ Delete</button>
+            <button class="btn-tool" style="background:#9b59b6" onclick="downloadVideo()">🎥 Video</button>
+        </div>
+        
+        <div style="margin-top:10px;">
             <button class="btn-tool" onclick="addSpeechBubble()">💬 Speech</button>
             <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-            <button class="btn-tool" style="background:#9b59b6" onclick="downloadVideo()">🎥 Download Video</button>
-            |
-            <button class="btn-delete" onclick="deleteSelected()">🗑️ Delete Selected</button>
-            <button class="btn-clear" onclick="clearCanvas()">🧹 Clear All</button>
+            <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
         </div>
     </div>
 
@@ -52,8 +58,8 @@
     </div>
 
     <div class="recording-bar">
-        <button style="background:#ff4757; color:white;" id="recBtn" onclick="toggleRecording()">● Record</button>
-        <button style="background:#2ed573; color:white;" onclick="playRecording()">▶ Play</button>
+        <button style="background:#ff4757; color:white; font-size: 1.2em;" id="recBtn" onclick="toggleRecording()">● Record</button>
+        <button style="background:#2ed573; color:white; font-size: 1.2em;" onclick="playRecording()">▶ Play</button>
     </div>
 
     <script>
@@ -62,29 +68,30 @@
         let frames = [];
         let recInterval;
 
-        // --- DELETE LOGIC ---
+        // --- NEW LAYERING LOGIC ---
+        function bringToFront() {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) {
+                canvas.bringToFront(activeObj);
+            }
+        }
+
+        function sendToBack() {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) {
+                // We send it to back, but stay above the background image
+                canvas.sendToBack(activeObj);
+                canvas.backgroundImage && canvas.sendToBack(canvas.backgroundImage);
+            }
+        }
+
+        // --- PREVIOUS FEATURES ---
         function deleteSelected() {
             const activeObjects = canvas.getActiveObjects();
-            if (activeObjects.length) {
-                canvas.discardActiveObject();
-                activeObjects.forEach((obj) => {
-                    canvas.remove(obj);
-                });
-            } else {
-                alert("Click on a character or speech bubble first to select it!");
-            }
+            canvas.discardActiveObject();
+            activeObjects.forEach(obj => canvas.remove(obj));
         }
 
-        function clearCanvas() {
-            if(confirm("Are you sure you want to delete everything?")) {
-                canvas.clear();
-                // Add a default background color back
-                canvas.backgroundColor = "white";
-                canvas.renderAll();
-            }
-        }
-
-        // --- EXISTING FEATURES ---
         document.getElementById('fileInput').onchange = function(e) {
             const reader = new FileReader();
             reader.onload = function(event) {
