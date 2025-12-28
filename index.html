@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Ultra - Language Edition</title>
+    <title>TweenCraft Ultra - Auto-Animate</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -15,6 +15,7 @@
         select { background: #16213e; color: white; border: 1px solid #3498db; }
         button:hover { filter: brightness(1.2); transform: translateY(-1px); }
         .btn-rec { background: #e94560; }
+        .btn-auto { background: #00d2ff; color: #1a1a2e; }
         .label-group { font-size: 0.75rem; color: #00d2ff; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-bottom: 1px solid #16213e; }
         input[type="file"] { display: none; }
     </style>
@@ -44,29 +45,22 @@
             <div class="label-group">2. Language & Voice</div>
             <select id="langSelect">
                 <option value="en-US">English (US)</option>
-                <option value="en-GB">English (UK)</option>
-                <option value="es-ES">Spanish (Spain)</option>
+                <option value="es-ES">Spanish</option>
                 <option value="fr-FR">French</option>
                 <option value="hi-IN">Hindi</option>
-                <option value="ar-SA">Arabic</option>
-                <option value="pt-BR">Portuguese</option>
             </select>
             <button style="background:#e67e22" onclick="speakText()">🗣️ Speak Selected</button>
 
-            <div class="label-group">3. Edit Scene</div>
+            <div class="label-group">3. Edit & Animate</div>
+            <button class="btn-auto" onclick="autoAnimateWalk()">🚶 Auto-Walk Right</button>
             <button onclick="addSpeechBubble()">💬 Add Speech</button>
             <button onclick="flipObject()">↔️ Mirror Flip</button>
-            <div style="display:flex; align-items:center; gap:10px; font-size: 14px;">
-                <span>Text Color:</span>
-                <input type="color" id="textColor" onchange="changeColor(this.value)" style="width:30px; height:30px;">
-            </div>
             
             <div class="label-group">4. Scenes</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
                 <button onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
                 <button onclick="changeBG('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800')">City</button>
                 <button onclick="changeBG('https://images.unsplash.com/photo-1500624285677-83183b9995c8?w=800')">Forest</button>
-                <button onclick="changeBG('')">Plain</button>
             </div>
             
             <button onclick="deleteSelected()" class="btn-rec" style="margin-top:10px;">🗑️ Delete Item</button>
@@ -89,20 +83,32 @@
         function saveHistory() { history.push(JSON.stringify(canvas)); if(history.length > 20) history.shift(); }
         canvas.on('object:modified', saveHistory);
 
-        // --- NEW LANGUAGE SPEAK LOGIC ---
+        // --- AUTO-ANIMATE LOGIC ---
+        function autoAnimateWalk() {
+            const active = canvas.getActiveObject();
+            if (!active) return alert("Select a character to make them walk!");
+            
+            // Slide to the right side of the screen
+            active.animate('left', 650, {
+                duration: 2000,
+                onChange: canvas.renderAll.bind(canvas),
+                onComplete: saveHistory,
+                easing: fabric.util.ease.easeInOutQuad
+            });
+        }
+
         function speakText() {
             const active = canvas.getActiveObject();
             if (active && active.type === 'i-text') {
                 const msg = new SpeechSynthesisUtterance(active.text);
                 msg.lang = document.getElementById('langSelect').value;
                 window.speechSynthesis.speak(msg);
-            } else { alert("Select a speech bubble first!"); }
+            }
         }
 
-        // --- CORE FUNCTIONS ---
         function addCharacter(url) {
             fabric.Image.fromURL(url, img => {
-                img.set({ left: 150, top: 200, scaleX: 0.25, scaleY: 0.25 });
+                img.set({ left: 50, top: 250, scaleX: 0.25, scaleY: 0.25 });
                 canvas.add(img); saveHistory();
             }, { crossOrigin: 'anonymous' });
         }
@@ -112,17 +118,7 @@
             canvas.add(text); saveHistory();
         }
 
-        function changeColor(color) {
-            const active = canvas.getActiveObject();
-            if (active && active.type === 'i-text') { active.set('fill', color); canvas.renderAll(); saveHistory(); }
-        }
-
-        function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
-        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
-        function flipObject() { const obj = canvas.getActiveObject(); if(obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); } }
-
         function changeBG(url) {
-            if(!url) { canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas)); return; }
             fabric.Image.fromURL(url, img => {
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
                     scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
@@ -131,7 +127,11 @@
             }, { crossOrigin: 'anonymous' });
         }
 
-        // --- ANIMATION & EXPORT ---
+        function undo() { if(history.length > 0) canvas.loadFromJSON(history.pop(), canvas.renderAll.bind(canvas)); }
+        function deleteSelected() { canvas.getActiveObjects().forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); saveHistory(); }
+        function flipObject() { const obj = canvas.getActiveObject(); if(obj) { obj.set('flipX', !obj.flipX); canvas.renderAll(); } }
+
+        // --- RECORDING ENGINE ---
         function toggleRecording() {
             recording = !recording;
             const btn = document.getElementById('recBtn');
