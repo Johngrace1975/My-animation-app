@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TweenCraft Web - Custom Uploads</title>
+    <title>TweenCraft Web - Ultimate Editor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a2e; color: white; margin: 0; padding: 20px; }
@@ -12,13 +12,14 @@
         .library { background: #16213e; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 15px; }
         .char-option { cursor: pointer; transition: 0.2s; border-radius: 5px; background: #2c3e50; padding: 5px; }
         .char-option:hover { transform: scale(1.1); background: #e94560; }
-        .char-option img { width: 50px; height: 50px; }
+        .char-option img { width: 45px; height: 45px; }
         .recording-bar { background: #16213e; padding: 15px; border-radius: 15px; width: 800px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
         button { padding: 10px 15px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; transition: 0.2s; }
+        .btn-delete { background: #ff4757; color: white; }
+        .btn-clear { background: #7f8c8d; color: white; }
         .btn-upload { background: #2ecc71; color: white; }
-        .btn-tool { background: #00d2ff; color: white; }
-        .btn-rec { background: #ff4757; color: white; }
-        input[type="file"] { display: none; } /* Hide the ugly default file input */
+        .btn-tool { background: #3498db; color: white; }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
@@ -27,19 +28,23 @@
     
     <div class="toolbar">
         <div class="library">
-            <strong>Library:</strong>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')"><img src="https://cdn-icons-png.flaticon.com/512/3593/3593311.png" title="Stickman"></div>
-            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4712/4712109.png')"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" title="Robot"></div>
-            
-            <label class="btn-upload" style="padding: 10px; border-radius: 8px; cursor: pointer; margin-left: 20px;">
-                📂 Upload Custom Stickman
+            <strong>Characters:</strong>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png')"><img src="https://cdn-icons-png.flaticon.com/512/3593/3593311.png"></div>
+            <div class="char-option" onclick="addCharacter('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')"><img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"></div>
+            <label class="btn-upload" style="padding: 8px; border-radius: 8px; cursor: pointer;">
+                📂 Upload
                 <input type="file" id="fileInput" accept="image/*">
             </label>
         </div>
 
-        <button class="btn-tool" onclick="addSpeechBubble()">💬 Add Speech</button>
-        <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
-        <button class="btn-tool" style="background:#9b59b6" onclick="downloadVideo()">🎥 Download Video</button>
+        <div>
+            <button class="btn-tool" onclick="addSpeechBubble()">💬 Speech</button>
+            <button class="btn-tool" onclick="changeBG('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">Park</button>
+            <button class="btn-tool" style="background:#9b59b6" onclick="downloadVideo()">🎥 Download Video</button>
+            |
+            <button class="btn-delete" onclick="deleteSelected()">🗑️ Delete Selected</button>
+            <button class="btn-clear" onclick="clearCanvas()">🧹 Clear All</button>
+        </div>
     </div>
 
     <div id="canvas-container">
@@ -47,7 +52,7 @@
     </div>
 
     <div class="recording-bar">
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()">● Start Recording</button>
+        <button style="background:#ff4757; color:white;" id="recBtn" onclick="toggleRecording()">● Record</button>
         <button style="background:#2ed573; color:white;" onclick="playRecording()">▶ Play</button>
     </div>
 
@@ -57,7 +62,29 @@
         let frames = [];
         let recInterval;
 
-        // Handle File Upload
+        // --- DELETE LOGIC ---
+        function deleteSelected() {
+            const activeObjects = canvas.getActiveObjects();
+            if (activeObjects.length) {
+                canvas.discardActiveObject();
+                activeObjects.forEach((obj) => {
+                    canvas.remove(obj);
+                });
+            } else {
+                alert("Click on a character or speech bubble first to select it!");
+            }
+        }
+
+        function clearCanvas() {
+            if(confirm("Are you sure you want to delete everything?")) {
+                canvas.clear();
+                // Add a default background color back
+                canvas.backgroundColor = "white";
+                canvas.renderAll();
+            }
+        }
+
+        // --- EXISTING FEATURES ---
         document.getElementById('fileInput').onchange = function(e) {
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -68,7 +95,7 @@
                     image.set({ left: 100, top: 100, scaleX: 0.2, scaleY: 0.2 });
                     canvas.add(image);
                 }
-            }
+            };
             reader.readAsDataURL(e.target.files[0]);
         };
 
@@ -88,7 +115,7 @@
         }
 
         function addSpeechBubble() {
-            const text = new fabric.IText('Yo!', { fontSize: 25, left: 300, top: 100, backgroundColor: 'white' });
+            const text = new fabric.IText('Hello!', { fontSize: 25, left: 300, top: 100, backgroundColor: 'white' });
             canvas.add(text);
         }
 
@@ -97,10 +124,10 @@
             const btn = document.getElementById('recBtn');
             if (recording) {
                 frames = [];
-                btn.innerText = "■ Stop Recording";
+                btn.innerText = "■ Stop";
                 recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 50);
             } else {
-                btn.innerText = "● Start Recording";
+                btn.innerText = "● Record";
                 clearInterval(recInterval);
             }
         }
@@ -136,7 +163,7 @@
             }, 50);
         }
 
-        addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png'); // Start with stickman
+        addCharacter('https://cdn-icons-png.flaticon.com/512/3593/3593311.png');
     </script>
 </body>
 </html>
