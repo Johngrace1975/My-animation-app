@@ -3,151 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TweenCraft - Community Edition</title>
+    <title>TweenCraft - Choice System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        :root { --primary: #ff9f43; --bg: #0a0a0a; --card: #1e1e1e; --purple: #9b59b6; }
+        :root { --primary: #ff9f43; --purple: #9b59b6; --bg: #0f0f0f; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5; }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .active { display: flex; }
 
-        /* COMMUNITY GALLERY */
-        #community-screen { background: #121212; padding-top: 20px; overflow-y: auto; display: none; }
-        .community-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; width: 90%; max-width: 800px; }
-        .video-card { background: var(--card); border-radius: 15px; overflow: hidden; position: relative; }
-        .video-card img { width: 100%; height: 120px; object-fit: cover; opacity: 0.7; }
-        .play-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; }
+        /* CHOICE SCREEN */
+        .choice-container { width: 90%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
+        .choice-card { background: #1e1e1e; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 20px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
+        .choice-card:hover { border-color: var(--primary); background: #252525; }
+        .icon-circle { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
 
-        /* STUDIO LAYOUT */
+        /* BG GRID */
+        .bg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; width: 100%; }
+        .bg-thumb { width: 100%; height: 80px; background: #333; border-radius: 12px; object-fit: cover; }
+
+        /* STUDIO */
         #studio-screen { flex-direction: row; }
-        .side-toolbar { width: 70px; background: rgba(20,20,20,0.95); height: 100%; display: flex; flex-direction: column; gap: 15px; align-items: center; padding-top: 15px; border-right: 1px solid #333; }
-        .tool-btn { width: 45px; height: 45px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; border: 1px solid #444; }
-
-        /* BUTTONS */
-        .btn-community { position: absolute; top: 20px; right: 20px; background: var(--purple); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; z-index: 100; }
-        .btn-close { position: fixed; top: 20px; left: 20px; background: #333; color: white; border: none; padding: 10px; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 101; }
-
-        #canvas-wrapper { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .ai-script-container { width: 85%; background: #1e1e1e; padding: 8px; border-radius: 12px; position: absolute; bottom: 80px; display: flex; gap: 10px; border: 1px solid var(--purple); }
-        #ai-input { flex-grow: 1; background: transparent; border: none; color: white; outline: none; }
-        .bottom-bar { position: absolute; bottom: 15px; display: flex; gap: 10px; align-items: center; }
-        .rec-circle { width: 50px; height: 50px; background: #e74c3c; border: 3px solid white; border-radius: 50%; cursor: pointer; }
+        .side-toolbar { width: 70px; background: #141414; height: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; }
+        .tool-btn { width: 50px; height: 50px; background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <button class="btn-community" id="commToggle" onclick="toggleCommunity()">🌎 Community Feed</button>
-
-    <div id="community-screen" class="screen">
-        <button class="btn-close" onclick="toggleCommunity()">✕</button>
-        <h2 style="margin-top: 60px;">Trending Creations</h2>
-        <div class="community-grid">
-            <div class="video-card">
-                <img src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400">
-                <div class="play-overlay">▶️</div>
-                <div style="padding:10px; font-size:12px">"First Day at Park" by @User1</div>
+    <div id="choice-screen" class="screen active">
+        <h2 style="margin-bottom: 30px;">Create New Video</h2>
+        
+        <div class="choice-container">
+            <div class="choice-card" onclick="runAIChoice()">
+                <div class="icon-circle" style="background: var(--purple);">✨</div>
+                <div style="text-align: left;">
+                    <b style="color: var(--purple);">AI Video Creator</b><br>
+                    <small style="color: #888;">AI generates characters & scene for you</small>
+                </div>
             </div>
-            <div class="video-card">
-                <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400">
-                <div class="play-overlay">▶️</div>
-                <div style="padding:10px; font-size:12px">"City Adventures" by @TweenFan</div>
+
+            <p style="text-align: center; color: #555;">OR CHOOSE BACKGROUND</p>
+
+            <div class="bg-grid">
+                <div onclick="manualChoice('Park', 'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400')">
+                    <img class="bg-thumb" src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=200">
+                    <div style="font-size: 12px; margin-top: 5px;">Park</div>
+                </div>
+                <div onclick="manualChoice('Office', 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400')">
+                    <img class="bg-thumb" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200">
+                    <div style="font-size: 12px; margin-top: 5px;">Office</div>
+                </div>
             </div>
         </div>
-        <p style="color:gray; font-size:13px">Post your video on TikTok with #TweenCraft to be featured!</p>
     </div>
 
-    <div id="studio-screen" class="screen active">
+    <div id="studio-screen" class="screen">
         <div class="side-toolbar">
-            <div class="tool-btn" onclick="addChar('https://cdn-icons-png.flaticon.com/512/4333/4333609.png')">👦</div>
-            <div class="tool-btn" onclick="addChar('https://cdn-icons-png.flaticon.com/512/4140/4140047.png')">👧</div>
-            <div class="tool-btn" onclick="addBubble()">💬</div>
-            <div class="tool-btn" style="background:#e67e22" onclick="location.reload()">🔄</div>
+            <div class="tool-btn" onclick="addChar('Boy')">👦</div>
+            <div class="tool-btn" onclick="addChar('Girl')">👧</div>
+            <div class="tool-btn" style="background:var(--primary)" onclick="location.reload()">🏠</div>
         </div>
-
-        <div id="canvas-wrapper">
+        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center;">
             <canvas id="mainStage"></canvas>
-            
-            <div class="ai-script-container">
-                <input type="text" id="ai-input" placeholder="Character Script...">
-                <button style="background:var(--purple); border:none; color:white; border-radius:8px; cursor:pointer;" onclick="runAI()">✨ Generate</button>
-            </div>
-
-            <div class="bottom-bar">
-                <div class="rec-circle" id="recBtn" onclick="handleRec()"></div>
-                <button style="background:var(--primary); border:none; color:white; padding:10px 20px; border-radius:20px; font-weight:bold;" onclick="downloadVid()">Export</button>
-            </div>
         </div>
     </div>
 
     <script>
         const canvas = new fabric.Canvas('mainStage');
-        let recording = false, frames = [], isCommunityOpen = false;
 
-        function toggleCommunity() {
-            isCommunityOpen = !isCommunityOpen;
-            document.getElementById('community-screen').style.display = isCommunityOpen ? 'flex' : 'none';
-            document.getElementById('commToggle').innerText = isCommunityOpen ? "🔙 Back to Studio" : "🌎 Community Feed";
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
-        // Initialize Canvas
-        window.onload = () => {
-            canvas.setDimensions({ width: 800, height: 450 });
-            canvas.backgroundColor = '#222';
-            canvas.renderAll();
-        };
+        // --- PATH A: AI LOGIC ---
+        function runAIChoice() {
+            alert("AI is setting up your scene...");
+            manualChoice('Beach', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800');
+            setTimeout(() => {
+                addChar('Boy', 150);
+                addChar('Girl', 450);
+            }, 500);
+        }
 
-        function addChar(url) {
+        // --- PATH B: MANUAL LOGIC ---
+        function manualChoice(name, url) {
+            showScreen('studio-screen');
+            canvas.setDimensions({ width: 800, height: 450 });
             fabric.Image.fromURL(url, img => {
-                img.set({ scaleX: 0.3, scaleY: 0.3, left: 100, top: canvas.height, originY: 'bottom' });
-                canvas.add(img); canvas.setActiveObject(img);
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: canvas.width / img.width, scaleY: canvas.height / img.height
+                });
             }, { crossOrigin: 'anonymous' });
         }
 
-        function addBubble(text = "Hello!") {
-            const b = new fabric.IText(text, { fontSize: 22, left: 200, top: 100, backgroundColor: 'white', padding: 10 });
-            canvas.add(b);
-        }
-
-        function runAI() {
-            const txt = document.getElementById('ai-input').value;
-            const active = canvas.getActiveObject();
-            if (!active) return alert("Select character!");
-            
-            addBubble(txt);
-            const msg = new SpeechSynthesisUtterance(txt);
-            msg.onstart = () => {
-                active.animate('scaleY', 0.35, { duration: 200, onChange: canvas.renderAll.bind(canvas), 
-                    onComplete: () => active.animate('scaleY', 0.3, { duration: 200, onChange: canvas.renderAll.bind(canvas) })
-                });
-            };
-            window.speechSynthesis.speak(msg);
-        }
-
-        function handleRec() {
-            recording = !recording;
-            document.getElementById('recBtn').style.borderRadius = recording ? "10px" : "50%";
-            if(recording) { frames = []; recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 100); }
-            else clearInterval(recInterval);
-        }
-
-        function downloadVid() {
-            const stream = document.querySelector('canvas').captureStream(30);
-            const recorder = new MediaRecorder(stream);
-            const chunks = [];
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob(chunks));
-                a.download = 'tweencraft_community_video.webm'; a.click();
-                alert("Your video is ready! Share it with #TweenCraft to join the community!");
-            };
-            recorder.start();
-            let i = 0;
-            const play = setInterval(() => {
-                if(i >= frames.length) { recorder.stop(); clearInterval(play); }
-                else { canvas.loadFromJSON(frames[i], () => canvas.renderAll()); i++; }
-            }, 100);
+        function addChar(type, leftPos = 100) {
+            const url = type === 'Boy' ? 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' : 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png';
+            fabric.Image.fromURL(url, img => {
+                img.set({ scaleX: 0.3, scaleY: 0.3, left: leftPos, top: canvas.height, originY: 'bottom' });
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            }, { crossOrigin: 'anonymous' });
         }
     </script>
 </body>
