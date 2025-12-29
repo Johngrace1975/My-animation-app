@@ -3,40 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TweenCraft Ultra - Expressions</title>
+    <title>TweenCraft Ultra - AI Script Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        :root { --primary: #ff9f43; --bg: #0a0a0a; --card: #1e1e1e; --blue: #3498db; }
+        :root { --primary: #ff9f43; --bg: #0a0a0a; --card: #1e1e1e; --blue: #3498db; --purple: #9b59b6; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
         .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .active { display: flex; }
-
-        /* BG SELECTION GRID */
-        .bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; max-width: 600px; }
-        .bg-item { background: var(--card); border-radius: 15px; overflow: hidden; border: 3px solid transparent; cursor: pointer; text-align: center; }
-        .bg-thumb { width: 100%; height: 80px; object-fit: cover; }
 
         /* STUDIO UI */
         #studio-screen { flex-direction: row; }
         .side-toolbar { width: 70px; background: rgba(20,20,20,0.95); height: 100%; display: flex; flex-direction: column; gap: 15px; align-items: center; padding-top: 15px; border-right: 1px solid #333; }
         .tool-btn { width: 45px; height: 45px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; border: 1px solid #444; }
         
-        /* EXPRESSION MENU */
-        .expression-panel { width: 60px; background: rgba(40,40,40,0.8); height: 100%; display: flex; flex-direction: column; gap: 10px; align-items: center; padding-top: 15px; border-left: 1px solid #333; }
-        .exp-btn { font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
-        .exp-btn:hover { transform: scale(1.3); }
+        #canvas-wrapper { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: #111; }
+        
+        /* AI SCRIPT BOX */
+        .ai-script-container { width: 90%; max-width: 600px; background: #1e1e1e; padding: 10px; border-radius: 15px; position: absolute; bottom: 80px; display: flex; gap: 10px; border: 1px solid var(--purple); box-shadow: 0 0 15px rgba(155, 89, 182, 0.3); }
+        #ai-input { flex-grow: 1; background: transparent; border: none; color: white; outline: none; font-size: 14px; }
+        .ai-send { background: var(--purple); border: none; color: white; padding: 5px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
 
-        #canvas-wrapper { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; background: #111; }
         .bottom-bar { position: absolute; bottom: 15px; display: flex; gap: 10px; align-items: center; }
         .rec-circle { width: 50px; height: 50px; background: #e74c3c; border: 3px solid white; border-radius: 50%; cursor: pointer; }
-        .magic-ai-btn { background: linear-gradient(45deg, #9b59b6, #3498db); border: none; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        .bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
+        .bg-item { background: var(--card); border-radius: 15px; overflow: hidden; cursor: pointer; text-align: center; }
+        .bg-thumb { width: 100%; height: 80px; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="bg-screen" class="screen active">
-        <h2>Choose a scene</h2>
+        <h2>Select Scene</h2>
         <div class="bg-grid">
             <div class="bg-item" onclick="startWithBG('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800')">
                 <img class="bg-thumb" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200">
@@ -47,7 +45,6 @@
                 <div style="padding:5px;font-size:12px">Office</div>
             </div>
         </div>
-        <button class="magic-ai-btn" onclick="aiAuto()">✨ Magic AI Create</button>
     </div>
 
     <div id="studio-screen" class="screen">
@@ -60,18 +57,16 @@
 
         <div id="canvas-wrapper">
             <canvas id="mainStage"></canvas>
+            
+            <div class="ai-script-container">
+                <input type="text" id="ai-input" placeholder="Type a script (e.g. 'Hello everyone!')">
+                <button class="ai-send" onclick="runAIScript()">✨ Generate</button>
+            </div>
+
             <div class="bottom-bar">
                 <div class="rec-circle" id="recBtn" onclick="handleRec()"></div>
-                <button class="magic-ai-btn" style="background:var(--blue)" onclick="downloadVid()">Export</button>
+                <button style="background:var(--blue); border:none; color:white; padding:10px 20px; border-radius:20px; font-weight:bold;" onclick="downloadVid()">Export</button>
             </div>
-        </div>
-
-        <div class="expression-panel">
-            <div style="font-size: 10px; color: #888;">MOOD</div>
-            <div class="exp-btn" onclick="setMood('normal')">🙂</div>
-            <div class="exp-btn" onclick="setMood('angry')">😠</div>
-            <div class="exp-btn" onclick="setMood('happy')">😁</div>
-            <div class="exp-btn" onclick="setMood('shock')">😲</div>
         </div>
     </div>
 
@@ -97,41 +92,46 @@
         function addChar(url) {
             fabric.Image.fromURL(url, img => {
                 img.set({ scaleX: 0.3, scaleY: 0.3, left: 100, top: canvas.height, originY: 'bottom' });
-                img.set('mood', 'normal'); // Custom property
-                canvas.add(img);
-                canvas.setActiveObject(img);
+                canvas.add(img); canvas.setActiveObject(img);
             }, { crossOrigin: 'anonymous' });
         }
 
-        // --- THE EXPRESSION LOGIC ---
-        function setMood(mood) {
-            const active = canvas.getActiveObject();
-            if (!active || active.type !== 'image') return;
-
-            // In a real app, we'd swap images. Here, we apply visual filters to simulate the mood.
-            active.filters = [];
-            if (mood === 'angry') {
-                active.filters.push(new fabric.Image.filters.ColorMatrix({ matrix: [1,0,0,0,0.3, 0,1,0,0,0, 0,0,1,0,0, 0,0,0,1,0] })); // Red tint
-            } else if (mood === 'shock') {
-                active.set('skewX', 10); // Slight distortion for shock
-            } else {
-                active.set('skewX', 0);
-            }
-            active.applyFilters();
-            canvas.renderAll();
+        function addBubble(text = "Hello!") {
+            const b = new fabric.IText(text, { fontSize: 22, left: 200, top: 100, backgroundColor: 'white', padding: 10 });
+            canvas.add(b);
+            return b;
         }
 
-        function addBubble() {
-            canvas.add(new fabric.IText('Hello!', { fontSize: 24, left: 200, top: 100, backgroundColor: 'white', padding: 8 }));
+        // --- AI SCRIPT MAGIC ---
+        function runAIScript() {
+            const input = document.getElementById('ai-input').value;
+            const active = canvas.getActiveObject();
+            if (!active || active.type !== 'image') return alert("Select a character first!");
+
+            // 1. Update/Add speech bubble
+            let bubble = canvas.getObjects().find(o => o.type === 'i-text');
+            if (!bubble) bubble = addBubble(input);
+            else { bubble.set('text', input); canvas.renderAll(); }
+
+            // 2. Run Voice & Lip Sync
+            const msg = new SpeechSynthesisUtterance(input);
+            let talking = true;
+            function bounce() {
+                if (!talking) return;
+                active.animate('scaleY', 0.33, { duration: 150, onChange: canvas.renderAll.bind(canvas), 
+                    onComplete: () => active.animate('scaleY', 0.3, { duration: 150, onChange: canvas.renderAll.bind(canvas), onComplete: bounce })
+                });
+            }
+            msg.onstart = bounce;
+            msg.onend = () => { talking = false; active.set('scaleY', 0.3); canvas.renderAll(); };
+            window.speechSynthesis.speak(msg);
         }
 
         function handleRec() {
             recording = !recording;
             document.getElementById('recBtn').style.borderRadius = recording ? "10px" : "50%";
-            if(recording) {
-                frames = [];
-                recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 100);
-            } else clearInterval(recInterval);
+            if(recording) { frames = []; recInterval = setInterval(() => frames.push(JSON.stringify(canvas)), 100); }
+            else clearInterval(recInterval);
         }
 
         function downloadVid() {
@@ -142,7 +142,7 @@
             recorder.onstop = () => {
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(new Blob(chunks));
-                a.download = 'tweencraft_movie.webm'; a.click();
+                a.download = 'ai_movie.webm'; a.click();
             };
             recorder.start();
             let i = 0;
@@ -150,14 +150,6 @@
                 if(i >= frames.length) { recorder.stop(); clearInterval(play); }
                 else { canvas.loadFromJSON(frames[i], () => canvas.renderAll()); i++; }
             }, 100);
-        }
-
-        function aiAuto() {
-            startWithBG('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800');
-            setTimeout(() => {
-                addChar('https://cdn-icons-png.flaticon.com/512/4333/4333609.png');
-                addBubble("AI Generated: Let's start!");
-            }, 500);
         }
     </script>
 </body>
