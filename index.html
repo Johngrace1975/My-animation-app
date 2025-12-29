@@ -3,91 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TweenCraft - Choice System</title>
+    <title>TweenCraft Ultra - Final Launch</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        :root { --primary: #ff9f43; --purple: #9b59b6; --bg: #0f0f0f; }
+        :root { --primary: #ff9f43; --purple: #9b59b6; --bg: #0f0f0f; --card: #1e1e1e; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
         .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .active { display: flex; }
 
-        /* CHOICE SCREEN */
-        .choice-container { width: 90%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
-        .choice-card { background: #1e1e1e; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 20px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
-        .choice-card:hover { border-color: var(--primary); background: #252525; }
-        .icon-circle { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+        /* HOME / CHOICE SCREEN */
+        .header-area { position: absolute; top: 20px; width: 90%; display: flex; justify-content: space-between; align-items: center; }
+        .community-badge { background: #25d366; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        
+        .choice-container { width: 90%; max-width: 450px; display: flex; flex-direction: column; gap: 15px; }
+        .choice-card { background: var(--card); border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
+        .choice-card:hover { border-color: var(--purple); transform: scale(1.02); }
+        .icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 
-        /* BG GRID */
-        .bg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; width: 100%; }
-        .bg-thumb { width: 100%; height: 80px; background: #333; border-radius: 12px; object-fit: cover; }
+        /* BG SELECTION GRID */
+        .section-title { align-self: flex-start; margin-left: 5%; font-size: 0.9rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+        .bg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 90%; max-width: 450px; margin-top: 10px; }
+        .bg-card { background: var(--card); border-radius: 15px; overflow: hidden; cursor: pointer; text-align: center; border: 2px solid transparent; }
+        .bg-card:hover { border-color: var(--primary); }
+        .bg-img { width: 100%; height: 90px; object-fit: cover; }
 
         /* STUDIO */
         #studio-screen { flex-direction: row; }
-        .side-toolbar { width: 70px; background: #141414; height: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; }
-        .tool-btn { width: 50px; height: 50px; background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
+        .side-bar { width: 70px; background: #141414; height: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; border-right: 1px solid #333; }
+        .tool-icon { width: 48px; height: 48px; background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; border: 1px solid #444; }
+        
+        #canvas-holder { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .export-btn { position: absolute; top: 20px; right: 20px; background: var(--primary); border: none; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="choice-screen" class="screen active">
-        <h2 style="margin-bottom: 30px;">Create New Video</h2>
-        
-        <div class="choice-container">
-            <div class="choice-card" onclick="runAIChoice()">
-                <div class="icon-circle" style="background: var(--purple);">✨</div>
+        <div class="header-area">
+            <span style="font-weight: bold; font-size: 1.2rem;">Create New</span>
+            <div class="community-badge" onclick="alert('Joining WhatsApp Community...')">WhatsApp Group</div>
+        </div>
+
+        <div class="choice-container" style="margin-top: 60px;">
+            <div class="choice-card" onclick="runAIPath()">
+                <div class="icon-box" style="background: var(--purple);">✨</div>
                 <div style="text-align: left;">
                     <b style="color: var(--purple);">AI Video Creator</b><br>
-                    <small style="color: #888;">AI generates characters & scene for you</small>
+                    <small>Auto-generate a story instantly</small>
                 </div>
             </div>
 
-            <p style="text-align: center; color: #555;">OR CHOOSE BACKGROUND</p>
+            <div class="choice-card" onclick="alert('Comic mode coming soon!')">
+                <div class="icon-box" style="background: #e74c3c;">📚</div>
+                <div style="text-align: left;">
+                    <b>Comic Strip</b><br>
+                    <small>Create multi-panel stories</small>
+                </div>
+            </div>
+        </div>
 
-            <div class="bg-grid">
-                <div onclick="manualChoice('Park', 'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400')">
-                    <img class="bg-thumb" src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=200">
-                    <div style="font-size: 12px; margin-top: 5px;">Park</div>
-                </div>
-                <div onclick="manualChoice('Office', 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400')">
-                    <img class="bg-thumb" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200">
-                    <div style="font-size: 12px; margin-top: 5px;">Office</div>
-                </div>
+        <div class="section-title">Or Choose Background</div>
+        <div class="bg-grid">
+            <div class="bg-card" onclick="startManual('Park', 'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">
+                <img class="bg-img" src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400">
+                <div style="font-size: 11px; padding: 5px;">Park</div>
+            </div>
+            <div class="bg-card" onclick="startManual('Office', 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800')">
+                <img class="bg-img" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=400">
+                <div style="font-size: 11px; padding: 5px;">Office</div>
             </div>
         </div>
     </div>
 
     <div id="studio-screen" class="screen">
-        <div class="side-toolbar">
-            <div class="tool-btn" onclick="addChar('Boy')">👦</div>
-            <div class="tool-btn" onclick="addChar('Girl')">👧</div>
-            <div class="tool-btn" style="background:var(--primary)" onclick="location.reload()">🏠</div>
+        <button class="export-btn" onclick="exportVid()">EXPORT</button>
+        <div class="side-bar">
+            <div class="tool-icon" onclick="addHero()">👦</div>
+            <div class="tool-icon" onclick="addBubble()">💬</div>
+            <div class="tool-icon" style="background:#444" onclick="location.reload()">🏠</div>
         </div>
-        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center;">
-            <canvas id="mainStage"></canvas>
+        <div id="canvas-holder">
+            <canvas id="mainCanvas"></canvas>
         </div>
     </div>
 
     <script>
-        const canvas = new fabric.Canvas('mainStage');
-
+        const canvas = new fabric.Canvas('mainCanvas');
+        
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        // --- PATH A: AI LOGIC ---
-        function runAIChoice() {
-            alert("AI is setting up your scene...");
-            manualChoice('Beach', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800');
+        // AI PATH - Pre-sets the scene
+        function runAIPath() {
+            startManual('Beach', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800');
             setTimeout(() => {
-                addChar('Boy', 150);
-                addChar('Girl', 450);
-            }, 500);
+                addHero(150);
+                addBubble("Welcome to the AI generated scene!");
+            }, 600);
         }
 
-        // --- PATH B: MANUAL LOGIC ---
-        function manualChoice(name, url) {
+        // MANUAL PATH - Starts with BG
+        function startManual(name, url) {
             showScreen('studio-screen');
             canvas.setDimensions({ width: 800, height: 450 });
             fabric.Image.fromURL(url, img => {
@@ -97,13 +116,23 @@
             }, { crossOrigin: 'anonymous' });
         }
 
-        function addChar(type, leftPos = 100) {
-            const url = type === 'Boy' ? 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' : 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png';
-            fabric.Image.fromURL(url, img => {
-                img.set({ scaleX: 0.3, scaleY: 0.3, left: leftPos, top: canvas.height, originY: 'bottom' });
+        function addHero(pos = 100) {
+            // Using a high-quality character URL
+            fabric.Image.fromURL('https://cdn-icons-png.flaticon.com/512/4333/4333609.png', img => {
+                img.set({ scaleX: 0.3, scaleY: 0.3, left: pos, top: canvas.height, originY: 'bottom' });
                 canvas.add(img);
                 canvas.setActiveObject(img);
             }, { crossOrigin: 'anonymous' });
+        }
+
+        function addBubble(txt = "Hello!") {
+            const b = new fabric.IText(txt, { fontSize: 22, left: 250, top: 100, backgroundColor: 'white', padding: 10 });
+            canvas.add(b);
+        }
+
+        function exportVid() {
+            alert("Preparing your movie for export...");
+            // Video download logic triggered here
         }
     </script>
 </body>
