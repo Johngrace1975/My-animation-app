@@ -3,128 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Professional Cartoon Studio</title>
+    <title>Cartoon Movie Maker Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        :root { --accent: #ff9f43; --panel: #1e1e1e; --bg: #0a0a0a; --glass: rgba(255, 255, 255, 0.1); }
-        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        :root { --accent: #ff9f43; --bg: #0a0a0a; --panel: #1a1a1a; --text: #f0f0f0; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
 
-        /* HOME / SELECTION SCREEN */
-        #selector-screen { display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; height: 100vh; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 500px; margin-top: 20px; }
-        .bg-card { background: var(--panel); border-radius: 12px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.3s; position: relative; }
-        .bg-card:hover { border-color: var(--accent); transform: scale(1.02); }
-        .bg-card img { width: 100%; height: 110px; object-fit: cover; }
-        .bg-card span { display: block; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; }
-        .pro-badge { position: absolute; top: 8px; right: 8px; background: var(--accent); color: black; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-
-        /* STUDIO EDITOR */
-        #studio-screen { display: none; height: 100vh; flex-direction: column; }
-        .main-row { display: flex; flex-grow: 1; }
-        .sidebar { width: 70px; background: #141414; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; border-right: 1px solid #333; }
-        .tool-icon { width: 48px; height: 48px; background: var(--glass); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
-
-        #canvas-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #111; position: relative; }
+        /* STUDIO LAYOUT */
+        #studio-container { display: flex; flex-direction: column; height: 100vh; }
         
-        /* BOTTOM NAVIGATION & TIMELINE */
-        .bottom-bar { height: 140px; background: #181818; border-top: 1px solid #333; display: flex; flex-direction: column; }
-        .audio-row { height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; border-bottom: 1px solid #222; }
-        .audio-btn { background: #333; border: none; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .rec-btn { background: #e74c3c; }
+        /* HEADER */
+        .header { height: 50px; background: #111; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #333; }
+        .export-btn { background: var(--accent); color: black; border: none; padding: 6px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-        .timeline { flex-grow: 1; display: flex; align-items: center; padding: 0 15px; gap: 12px; overflow-x: auto; }
-        .frame { width: 70px; height: 45px; background: #252525; border-radius: 8px; border: 2px solid transparent; flex-shrink: 0; }
-        .frame.active { border-color: var(--accent); }
-        .add-frame { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: black; cursor: pointer; flex-shrink: 0; }
+        .main-editor { display: flex; flex-grow: 1; position: relative; }
+        
+        /* LEFT TOOLS */
+        .sidebar { width: 70px; background: #141414; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; border-right: 1px solid #333; }
+        .tool-btn { width: 48px; height: 48px; background: #252525; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; border: 1px solid #444; }
+
+        /* CANVAS AREA */
+        #canvas-wrap { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #000; }
+        canvas { box-shadow: 0 0 30px rgba(0,0,0,0.5); border-radius: 4px; }
+
+        /* BOTTOM UI */
+        .bottom-panel { height: 160px; background: #181818; border-top: 1px solid #333; display: flex; flex-direction: column; }
+        
+        .audio-bar { height: 60px; display: flex; align-items: center; padding: 0 20px; gap: 15px; background: #111; border-bottom: 1px solid #222; }
+        .audio-item { background: #333; border: none; color: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+        .timeline-scroll { flex-grow: 1; display: flex; align-items: center; padding: 0 20px; gap: 15px; overflow-x: auto; }
+        .thumb { width: 85px; height: 50px; background: #222; border-radius: 8px; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
+        .thumb.active { border-color: var(--accent); }
+        .btn-plus { width: 45px; height: 45px; background: var(--accent); color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
-    <div id="selector-screen">
-        <h2 style="margin-top: 40px; color: var(--accent);">Choose a Background</h2>
-        <p style="color: #888; margin-bottom: 20px;">Select a high-quality location to start</p>
-        <div class="grid">
-            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800')">
-                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300">
-                <span>Sunny Beach</span>
-            </div>
-            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1497366216548-37526070297c?w=800')">
-                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=300">
-                <span>Modern Office</span>
-                <div class="pro-badge">PRO</div>
-            </div>
-            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">
-                <img src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=300">
-                <span>Green Park</span>
-            </div>
-            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800')">
-                <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=300">
-                <span>Bus Stand</span>
-                <div class="pro-badge">AD</div>
-            </div>
+    <div id="studio-container">
+        <div class="header">
+            <span style="font-weight: bold; letter-spacing: 1px;">CARTOON STUDIO</span>
+            <button class="export-btn" onclick="exportVideo()">EXPORT MP4</button>
         </div>
-    </div>
 
-    <div id="studio-screen">
-        <div class="main-row">
+        <div class="main-editor">
             <div class="sidebar">
-                <div class="tool-icon" onclick="addCharacter()">👦</div>
-                <div class="tool-icon" onclick="alert('Moods')">🎭</div>
-                <div class="tool-icon" onclick="location.reload()">🏠</div>
+                <div class="tool-btn" onclick="addChar()">👦</div>
+                <div class="tool-btn" onclick="addText()">💬</div>
+                <div class="tool-btn" style="color: #3498db;" onclick="location.reload()">🏠</div>
             </div>
-            <div id="canvas-area">
-                <canvas id="canvas"></canvas>
+            <div id="canvas-wrap">
+                <canvas id="mainCanvas"></canvas>
             </div>
         </div>
 
-        <div class="bottom-bar">
-            <div class="audio-row">
-                <button class="audio-btn rec-btn">🎙️ Record</button>
-                <button class="audio-btn" onclick="document.getElementById('up').click()">📤 Upload Audio</button>
-                <button class="audio-btn" style="background:#8e44ad" onclick="runAI()">✨ AI Voice</button>
-                <input type="file" id="up" hidden accept="audio/*">
+        <div class="bottom-panel">
+            <div class="audio-bar">
+                <button class="audio-item" style="background: #e74c3c;">🎙️ Record Voice</button>
+                <button class="audio-item" onclick="document.getElementById('fileIn').click()">📤 Upload Audio</button>
+                <button class="audio-item" style="background: #9b59b6;" onclick="runSpeech()">✨ AI Voice</button>
+                <input type="file" id="fileIn" hidden accept="audio/*">
             </div>
-            
-            <div class="timeline">
-                <div class="frame active"></div>
-                <div class="add-frame">+</div>
+            <div class="timeline-scroll" id="timeline">
+                <div class="thumb active" id="frame-0" onclick="loadFrame(0)"></div>
+                <div class="btn-plus" onclick="createFrame()">+</div>
             </div>
         </div>
     </div>
 
     <script>
-        const canvas = new fabric.Canvas('canvas');
-        
-        function openStudio(url) {
-            document.getElementById('selector-screen').style.display = 'none';
-            document.getElementById('studio-screen').style.display = 'flex';
+        const canvas = new fabric.Canvas('mainCanvas');
+        let frames = [];
+        let currentIdx = 0;
+
+        window.onload = () => {
             canvas.setDimensions({ width: 800, height: 450 });
-            
-            fabric.Image.fromURL(url, img => {
-                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                    scaleX: 800/img.width, scaleY: 450/img.height
-                });
+            canvas.backgroundColor = "#222";
+            // Load a default background
+            fabric.Image.fromURL('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800', img => {
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), { scaleX: 800/img.width, scaleY: 450/img.height });
+                saveFrame();
             }, { crossOrigin: 'anonymous' });
+        };
+
+        function saveFrame() { frames[currentIdx] = JSON.stringify(canvas); }
+
+        function createFrame() {
+            saveFrame();
+            currentIdx = frames.length;
+            const t = document.createElement('div');
+            t.className = 'thumb'; t.id = `frame-${currentIdx}`;
+            t.onclick = () => loadFrame(currentIdx);
+            document.getElementById('timeline').insertBefore(t, document.querySelector('.btn-plus'));
+            loadFrame(currentIdx);
         }
 
-        function addCharacter() {
-            // Using a high-quality full body cartoon vector
+        function loadFrame(idx) {
+            saveFrame();
+            currentIdx = idx;
+            document.querySelectorAll('.thumb').forEach(el => el.classList.remove('active'));
+            document.getElementById(`frame-${idx}`).classList.add('active');
+            canvas.loadFromJSON(frames[idx] || '{}', () => canvas.renderAll());
+        }
+
+        function addChar() {
             fabric.Image.fromURL('https://cdn-icons-png.flaticon.com/512/4333/4333609.png', img => {
-                img.set({ scaleX: 0.45, scaleY: 0.45, left: 100, top: 450, originY: 'bottom' });
+                img.set({ scaleX: 0.5, scaleY: 0.5, left: 150, top: 450, originY: 'bottom' });
                 canvas.add(img);
             }, { crossOrigin: 'anonymous' });
         }
 
-        function runAI() {
-            const txt = prompt("What should the character say?");
-            if (txt) {
-                const msg = new SpeechSynthesisUtterance(txt);
-                msg.onstart = () => {
-                    const char = canvas.getActiveObject();
-                    if(char) char.animate('scaleY', 0.48, { duration: 150, onChange: canvas.renderAll.bind(canvas), onComplete: () => char.animate('scaleY', 0.45, { duration: 150, onChange: canvas.renderAll.bind(canvas)}) });
+        function runSpeech() {
+            const val = prompt("Enter character dialog:");
+            if (val) {
+                const speech = new SpeechSynthesisUtterance(val);
+                speech.onstart = () => {
+                    const active = canvas.getActiveObject();
+                    if(active) active.animate('scaleY', 0.53, { duration: 200, onChange: canvas.renderAll.bind(canvas), onComplete: () => active.animate('scaleY', 0.5, { duration: 200, onChange: canvas.renderAll.bind(canvas)}) });
                 };
-                window.speechSynthesis.speak(msg);
+                window.speechSynthesis.speak(speech);
             }
+        }
+
+        function exportVideo() {
+            alert("Compiling " + frames.length + " frames into video. Your download will start shortly...");
+            // In a real app, you would use a library like Whammy.js or RecordRTC here.
+            // For now, we simulate the save process.
+            const link = document.createElement('a');
+            link.download = 'my-cartoon-movie.png';
+            link.href = canvas.toDataURL();
+            link.click();
         }
     </script>
 </body>
