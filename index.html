@@ -3,157 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TweenCraft Ultra - Production Build</title>
+    <title>Professional Cartoon Studio</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        :root { --primary: #ff9f43; --purple: #9b59b6; --bg: #0a0a0a; --card: #1e1e1e; --red: #e74c3c; --blue: #3498db; }
-        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        :root { --accent: #ff9f43; --panel: #1e1e1e; --bg: #0a0a0a; --glass: rgba(255, 255, 255, 0.1); }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+
+        /* HOME / SELECTION SCREEN */
+        #selector-screen { display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; height: 100vh; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 500px; margin-top: 20px; }
+        .bg-card { background: var(--panel); border-radius: 12px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.3s; position: relative; }
+        .bg-card:hover { border-color: var(--accent); transform: scale(1.02); }
+        .bg-card img { width: 100%; height: 110px; object-fit: cover; }
+        .bg-card span { display: block; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; }
+        .pro-badge { position: absolute; top: 8px; right: 8px; background: var(--accent); color: black; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
+        /* STUDIO EDITOR */
+        #studio-screen { display: none; height: 100vh; flex-direction: column; }
+        .main-row { display: flex; flex-grow: 1; }
+        .sidebar { width: 70px; background: #141414; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; border-right: 1px solid #333; }
+        .tool-icon { width: 48px; height: 48px; background: var(--glass); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
+
+        #canvas-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #111; position: relative; }
         
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; }
-        .active { display: flex; }
+        /* BOTTOM NAVIGATION & TIMELINE */
+        .bottom-bar { height: 140px; background: #181818; border-top: 1px solid #333; display: flex; flex-direction: column; }
+        .audio-row { height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; border-bottom: 1px solid #222; }
+        .audio-btn { background: #333; border: none; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .rec-btn { background: #e74c3c; }
 
-        /* HOME SCREEN */
-        #home-screen { align-items: center; justify-content: center; padding: 20px; }
-        .choice-card { background: var(--card); width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; margin-bottom: 15px; cursor: pointer; border: 2px solid transparent; display: flex; align-items: center; gap: 15px; }
-        .choice-card:hover { border-color: var(--purple); }
-        .bg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 90%; max-width: 400px; }
-        .bg-item { background: var(--card); border-radius: 10px; overflow: hidden; height: 100px; cursor: pointer; position: relative; }
-        .bg-item img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* STUDIO */
-        #studio-screen { flex-direction: column; }
-        .workspace { display: flex; flex-grow: 1; position: relative; }
-        .sidebar { width: 65px; background: #141414; display: flex; flex-direction: column; align-items: center; padding-top: 15px; gap: 15px; border-right: 1px solid #333; }
-        .tool-btn { width: 42px; height: 42px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; }
-        
-        /* CANVAS */
-        #canvas-wrapper { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #111; }
-        
-        /* AUDIO BAR */
-        .audio-controls { position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); padding: 8px 15px; border-radius: 25px; display: flex; gap: 10px; border: 1px solid var(--purple); }
-        .audio-input { background: transparent; border: none; color: white; width: 150px; outline: none; font-size: 12px; }
-
-        /* TIMELINE */
-        .bottom-ui { height: 80px; background: #181818; display: flex; align-items: center; padding: 0 15px; gap: 10px; border-top: 1px solid #333; }
-        .frame-box { width: 65px; height: 45px; background: #333; border-radius: 6px; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; }
-        .frame-box.active { border-color: var(--primary); }
-
-        /* PREVIEW */
-        #preview-layer { position: fixed; top:0; left:0; width:100%; height:100%; background:black; z-index: 1000; display:none; flex-direction:column; align-items:center; justify-content:center; }
+        .timeline { flex-grow: 1; display: flex; align-items: center; padding: 0 15px; gap: 12px; overflow-x: auto; }
+        .frame { width: 70px; height: 45px; background: #252525; border-radius: 8px; border: 2px solid transparent; flex-shrink: 0; }
+        .frame.active { border-color: var(--accent); }
+        .add-frame { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: black; cursor: pointer; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
-    <div id="home-screen" class="screen active">
-        <h2 style="margin-bottom: 25px;">TweenCraft Ultra</h2>
-        <div class="choice-card" onclick="startAI()">
-            <div style="background: var(--purple); padding: 10px; border-radius: 12px;">✨</div>
-            <div><b>AI Video Creator</b><br><small>Let AI build your scene</small></div>
-        </div>
-        <p style="color: #666; font-size: 12px;">OR CHOOSE A SCENE</p>
-        <div class="bg-grid">
-            <div class="bg-item" onclick="startManual('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600')"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200"></div>
-            <div class="bg-item" onclick="startManual('https://images.unsplash.com/photo-1497366216548-37526070297c?w=600')"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200"></div>
+    <div id="selector-screen">
+        <h2 style="margin-top: 40px; color: var(--accent);">Choose a Background</h2>
+        <p style="color: #888; margin-bottom: 20px;">Select a high-quality location to start</p>
+        <div class="grid">
+            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800')">
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300">
+                <span>Sunny Beach</span>
+            </div>
+            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1497366216548-37526070297c?w=800')">
+                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=300">
+                <span>Modern Office</span>
+                <div class="pro-badge">PRO</div>
+            </div>
+            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">
+                <img src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=300">
+                <span>Green Park</span>
+            </div>
+            <div class="bg-card" onclick="openStudio('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800')">
+                <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=300">
+                <span>Bus Stand</span>
+                <div class="pro-badge">AD</div>
+            </div>
         </div>
     </div>
 
-    <div id="studio-screen" class="screen">
-        <div class="workspace">
+    <div id="studio-screen">
+        <div class="main-row">
             <div class="sidebar">
-                <div class="tool-btn" onclick="addFullBody()">👦</div>
-                <div class="tool-btn" onclick="toggleMoods()">🎭</div>
-                <div class="tool-btn" onclick="location.reload()">🏠</div>
+                <div class="tool-icon" onclick="addCharacter()">👦</div>
+                <div class="tool-icon" onclick="alert('Moods')">🎭</div>
+                <div class="tool-icon" onclick="location.reload()">🏠</div>
             </div>
-            <div id="canvas-wrapper">
-                <canvas id="mainCanvas"></canvas>
-            </div>
-            <div class="audio-controls">
-                <input type="text" id="script" class="audio-input" placeholder="Type AI script...">
-                <button class="tool-btn" style="width:auto; padding:0 10px; font-size:12px; background:var(--purple);" onclick="runAI()">Speak</button>
-                <button class="tool-btn" style="width:auto; padding:0 10px; font-size:12px; background:var(--red);" onclick="alert('Recording...')">Rec</button>
+            <div id="canvas-area">
+                <canvas id="canvas"></canvas>
             </div>
         </div>
-        <div class="bottom-ui">
-            <button class="tool-btn" style="background:var(--blue); width:80px; font-size:12px;" onclick="playPreview()">▶️ Play</button>
-            <div id="timeline" style="display:flex; gap:10px; overflow-x:auto; flex-grow:1;">
-                <div class="frame-box active" id="f-0" onclick="switchFrame(0)"></div>
-            </div>
-            <div class="tool-btn" style="background:var(--primary); border-radius:50%;" onclick="addFrame()">+</div>
-        </div>
-    </div>
 
-    <div id="preview-layer">
-        <canvas id="pCanvas"></canvas>
-        <button class="tool-btn" style="margin-top:20px; width:120px; background:var(--red);" onclick="closePreview()">Close</button>
+        <div class="bottom-bar">
+            <div class="audio-row">
+                <button class="audio-btn rec-btn">🎙️ Record</button>
+                <button class="audio-btn" onclick="document.getElementById('up').click()">📤 Upload Audio</button>
+                <button class="audio-btn" style="background:#8e44ad" onclick="runAI()">✨ AI Voice</button>
+                <input type="file" id="up" hidden accept="audio/*">
+            </div>
+            
+            <div class="timeline">
+                <div class="frame active"></div>
+                <div class="add-frame">+</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const canvas = new fabric.Canvas('mainCanvas');
-        const pCanvas = new fabric.StaticCanvas('pCanvas');
-        let frames = [];
-        let cur = 0;
-
-        window.onload = () => {
+        const canvas = new fabric.Canvas('canvas');
+        
+        function openStudio(url) {
+            document.getElementById('selector-screen').style.display = 'none';
+            document.getElementById('studio-screen').style.display = 'flex';
             canvas.setDimensions({ width: 800, height: 450 });
-            pCanvas.setDimensions({ width: 800, height: 450 });
-            save();
-        };
-
-        function startAI() { startManual('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800'); setTimeout(() => { addFullBody(); runAI("Welcome!"); }, 500); }
-
-        function startManual(url) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('studio-screen').classList.add('active');
+            
             fabric.Image.fromURL(url, img => {
-                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), { scaleX: 800/img.width, scaleY: 450/img.height });
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: 800/img.width, scaleY: 450/img.height
+                });
             }, { crossOrigin: 'anonymous' });
         }
 
-        function save() { frames[cur] = JSON.stringify(canvas); }
-
-        function addFrame() {
-            save(); cur = frames.length;
-            const f = document.createElement('div');
-            f.className = 'frame-box'; f.id = `f-${cur}`; f.onclick = () => switchFrame(cur);
-            document.getElementById('timeline').appendChild(f);
-            switchFrame(cur);
-        }
-
-        function switchFrame(i) {
-            save(); cur = i;
-            document.querySelectorAll('.frame-box').forEach(b => b.classList.remove('active'));
-            document.getElementById(`f-${i}`).classList.add('active');
-            canvas.loadFromJSON(frames[i] || '{}', () => canvas.renderAll());
-        }
-
-        function addFullBody() {
+        function addCharacter() {
+            // Using a high-quality full body cartoon vector
             fabric.Image.fromURL('https://cdn-icons-png.flaticon.com/512/4333/4333609.png', img => {
-                img.set({ scaleX: 0.4, scaleY: 0.4, left: 100, top: 450, originY: 'bottom' });
-                canvas.add(img); save();
+                img.set({ scaleX: 0.45, scaleY: 0.45, left: 100, top: 450, originY: 'bottom' });
+                canvas.add(img);
             }, { crossOrigin: 'anonymous' });
         }
 
-        function runAI(custom) {
-            const t = custom || document.getElementById('script').value;
-            const msg = new SpeechSynthesisUtterance(t);
-            msg.onstart = () => {
-                const obj = canvas.getActiveObject();
-                if(obj) obj.animate('scaleY', 0.45, { duration: 200, onChange: canvas.renderAll.bind(canvas), onComplete: () => obj.animate('scaleY', 0.4, { duration: 200, onChange: canvas.renderAll.bind(canvas)}) });
-            };
-            window.speechSynthesis.speak(msg);
+        function runAI() {
+            const txt = prompt("What should the character say?");
+            if (txt) {
+                const msg = new SpeechSynthesisUtterance(txt);
+                msg.onstart = () => {
+                    const char = canvas.getActiveObject();
+                    if(char) char.animate('scaleY', 0.48, { duration: 150, onChange: canvas.renderAll.bind(canvas), onComplete: () => char.animate('scaleY', 0.45, { duration: 150, onChange: canvas.renderAll.bind(canvas)}) });
+                };
+                window.speechSynthesis.speak(msg);
+            }
         }
-
-        function playPreview() {
-            save(); document.getElementById('preview-layer').style.display = 'flex';
-            let i = 0;
-            const timer = setInterval(() => {
-                if(i >= frames.length) { clearInterval(timer); }
-                else { pCanvas.loadFromJSON(frames[i], () => pCanvas.renderAll()); i++; }
-            }, 1000);
-            window.lastTimer = timer;
-        }
-
-        function closePreview() { clearInterval(window.lastTimer); document.getElementById('preview-layer').style.display = 'none'; }
     </script>
 </body>
 </html>
