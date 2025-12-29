@@ -3,122 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TweenCraft - Timeline Editor</title>
+    <title>TweenCraft - Multi-Scene Studio</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        :root { --bg: #0a0a0a; --card: #1e1e1e; --primary: #ff9f43; --purple: #9b59b6; }
+        :root { --primary: #ff9f43; --bg: #0f0f0f; --card: #1e1e1e; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        #studio-screen { display: flex; height: 100vh; flex-direction: column; }
-        .main-container { display: flex; flex-grow: 1; }
-        
-        /* SIDEBAR */
-        .side-toolbar { width: 70px; background: #141414; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 15px; border-right: 1px solid #333; }
-        .tool-btn { width: 45px; height: 45px; background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; padding: 20px; }
+        .active { display: flex; }
 
-        /* CANVAS AREA */
-        #canvas-wrapper { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #111; position: relative; }
-        canvas { border: 1px solid #444; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        /* BACKGROUND SELECTION GRID */
+        .bg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 500px; margin-top: 20px; }
+        .bg-card { background: var(--card); border-radius: 15px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: 0.3s; position: relative; }
+        .bg-card:hover { border-color: var(--primary); }
+        .bg-img { width: 100%; height: 100px; object-fit: cover; }
+        .bg-label { padding: 8px; font-size: 14px; text-align: center; font-weight: bold; }
+        .ad-badge { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 10px; font-size: 10px; color: #ff9f43; }
 
-        /* TIMELINE (From your video) */
-        .timeline-container { height: 100px; background: #181818; display: flex; align-items: center; padding: 0 20px; gap: 15px; border-top: 1px solid #333; overflow-x: auto; }
-        .frame-thumb { width: 80px; height: 50px; background: #333; border-radius: 8px; flex-shrink: 0; border: 2px solid transparent; cursor: pointer; position: relative; }
-        .frame-thumb.active { border-color: var(--primary); }
-        .add-frame-btn { width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; flex-shrink: 0; }
+        /* STUDIO LAYOUT */
+        #studio-screen { padding: 0; flex-direction: row; }
+        .sidebar { width: 70px; background: #141414; height: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; border-right: 1px solid #333; }
+        .tool-icon { width: 50px; height: 50px; background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; }
         
-        .export-bar { position: absolute; top: 15px; right: 20px; z-index: 10; }
-        .btn-action { background: var(--primary); border: none; color: white; padding: 8px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        #canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #111; }
+        .top-nav { position: absolute; top: 15px; right: 20px; z-index: 10; }
+        .btn-main { background: var(--primary); border: none; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="studio-screen">
-        <div class="export-bar">
-            <button class="btn-action" onclick="exportFinal()">EXPORT</button>
+    <div id="selection-screen" class="screen active">
+        <h2 style="margin-top: 40px;">Choose a Background</h2>
+        <div class="bg-grid">
+            <div class="bg-card" onclick="startStudio('Beach', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800')">
+                <img class="bg-img" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400">
+                <div class="bg-label">Beach</div>
+            </div>
+            <div class="bg-card" onclick="startStudio('Office', 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800')">
+                <img class="bg-img" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=400">
+                <div class="bg-label">Office</div>
+                <div class="ad-badge">AD x1</div>
+            </div>
+            <div class="bg-card" onclick="startStudio('Bus Stand', 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800')">
+                <img class="bg-img" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400">
+                <div class="bg-label">Bus Stand</div>
+                <div class="ad-badge">AD x1</div>
+            </div>
+            <div class="bg-card" onclick="startStudio('Park', 'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800')">
+                <img class="bg-img" src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400">
+                <div class="bg-label">Park</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="studio-screen" class="screen">
+        <div class="top-nav">
+            <button class="btn-main" onclick="location.reload()">HOME</button>
+            <button class="btn-main" style="background:#3498db" onclick="alert('Exporting...')">EXPORT</button>
         </div>
 
-        <div class="main-container">
-            <div class="side-toolbar">
-                <div class="tool-btn" onclick="addChar()">👦</div>
-                <div class="tool-btn" onclick="addText()">💬</div>
-                <div class="tool-btn" onclick="location.reload()">🏠</div>
-            </div>
-
-            <div id="canvas-wrapper">
-                <canvas id="mainCanvas"></canvas>
-            </div>
+        <div class="sidebar">
+            <div class="tool-icon" onclick="addFullBodyChar()">👦</div>
+            <div class="tool-icon" onclick="addText()">💬</div>
         </div>
 
-        <div class="timeline-container" id="timeline">
-            <div class="frame-thumb active" onclick="switchFrame(0)" id="frame-0"></div>
-            <div class="add-frame-btn" onclick="addNewFrame()">+</div>
+        <div id="canvas-container">
+            <canvas id="mainCanvas"></canvas>
         </div>
     </div>
 
     <script>
         const canvas = new fabric.Canvas('mainCanvas');
-        let frames = []; 
-        let currentFrameIndex = 0;
 
-        // Initialize
-        window.onload = () => {
+        function startStudio(name, url) {
+            document.getElementById('selection-screen').classList.remove('active');
+            document.getElementById('studio-screen').classList.add('active');
+            
             canvas.setDimensions({ width: 800, height: 450 });
-            canvas.backgroundColor = "#222";
-            saveCurrentFrame(); // Save the first empty frame
-        };
-
-        function saveCurrentFrame() {
-            frames[currentFrameIndex] = JSON.stringify(canvas);
-        }
-
-        function addNewFrame() {
-            saveCurrentFrame(); // Save what we have
-            currentFrameIndex = frames.length;
             
-            // Create UI for new frame
-            const thumb = document.createElement('div');
-            thumb.className = 'frame-thumb';
-            thumb.id = `frame-${currentFrameIndex}`;
-            thumb.onclick = () => switchFrame(currentFrameIndex);
-            document.querySelector('.add-frame-btn').before(thumb);
-
-            // Clear canvas for new scene
-            canvas.clear();
-            canvas.backgroundColor = "#222";
-            saveCurrentFrame();
-            switchFrame(currentFrameIndex);
+            fabric.Image.fromURL(url, img => {
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: canvas.width / img.width,
+                    scaleY: canvas.height / img.height,
+                    originX: 'left', originY: 'top'
+                });
+            }, { crossOrigin: 'anonymous' });
         }
 
-        function switchFrame(index) {
-            saveCurrentFrame();
-            currentFrameIndex = index;
-            
-            // UI Update
-            document.querySelectorAll('.frame-thumb').forEach(t => t.classList.remove('active'));
-            document.getElementById(`frame-${index}`).classList.add('active');
-
-            // Load Canvas Data
-            canvas.loadFromJSON(frames[index], () => {
-                canvas.renderAll();
-            });
-        }
-
-        function addChar() {
-            fabric.Image.fromURL('https://cdn-icons-png.flaticon.com/512/4333/4333609.png', img => {
-                img.set({ scaleX: 0.3, scaleY: 0.3, left: 100, top: canvas.height, originY: 'bottom' });
+        // Functions to add Complete Body Characters
+        function addFullBodyChar() {
+            // Using a full-body cartoon vector
+            const charUrl = 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png';
+            fabric.Image.fromURL(charUrl, img => {
+                img.set({
+                    scaleX: 0.4, 
+                    scaleY: 0.4, 
+                    left: 100, 
+                    top: canvas.height - 20, 
+                    originY: 'bottom'
+                });
                 canvas.add(img);
-                saveCurrentFrame();
+                canvas.setActiveObject(img);
             }, { crossOrigin: 'anonymous' });
         }
 
         function addText() {
-            const t = new fabric.IText('Tap to edit', { left: 200, top: 100, fontSize: 20, backgroundColor: 'white' });
+            const t = new fabric.IText('Tap to type...', { 
+                left: 200, top: 100, fontSize: 24, backgroundColor: 'white' 
+            });
             canvas.add(t);
-            saveCurrentFrame();
-        }
-
-        function exportFinal() {
-            alert(`Exporting story with ${frames.length} scenes!`);
         }
     </script>
 </body>
